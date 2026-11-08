@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zaim’s Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
+<!-- CATATAN: JANGAN tambahkan teks penjelasan panjang atau deskripsi tak perlu ke tampilan web.
+     Semua teks di UI harus singkat: judul, label, dan tombol saja. -->
+<style>
+/* CATATAN: jangan tambah teks panjang ke UI; cukup label pendek */
+:root{--bg:#E9E5FF;--card:#fff;--ink:#14121f;--mut:#6b6880;--line:#14121f;--lime:#DFF65A;--lav:#D9D0FF;--yel:#FFE8A3;--teal:#38D6C4;--on:#14121f;
+--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.5,.5,1);
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121f;--card:#211e31;--ink:#f3f2fa;--mut:#9a97b0;--line:#8a86a8;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14121f;--card:#211e31;--ink:#f3f2fa;--mut:#9a97b0;--line:#8a86a8;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;font-weight:500;transition:background .4s,color .4s}
+button,input,textarea,select{font:inherit;color:inherit}
+#app{max-width:560px;margin:0 auto;padding:18px 16px 130px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.logo{font-weight:800;font-size:24px;letter-spacing:-1px;flex:1}.logo i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--lime);border:1.5px solid var(--line);margin-left:3px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--lime);color:var(--on);border:1.5px solid var(--line);font-weight:800;display:grid;place-items:center}
+.btn{background:#14121f;color:#fff;border:1.5px solid var(--line);border-radius:999px;padding:11px 20px;font-weight:700;cursor:pointer;transition:transform .25s var(--spring),box-shadow .25s,background .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 0 rgba(20,18,31,.18)}.btn:active{transform:scale(.94)}
+.btn.o{background:var(--card);color:var(--ink)}
+.btn.sm{padding:6px 14px;font-size:13px}.btn.ic{width:42px;height:42px;padding:0;font-size:17px}
+.btn.x{border-color:transparent;background:transparent;color:var(--mut);padding:6px 10px}.btn.x:hover{box-shadow:none;color:var(--ink)}
+.card{position:relative;overflow:hidden;background:var(--card);border:1.5px solid var(--line);border-radius:24px;padding:16px;margin-bottom:16px}
+.deco::after{content:"";position:absolute;right:-34px;top:-34px;width:120px;height:120px;border-radius:50%;background:var(--c,var(--lime));transition:transform .5s var(--spring);z-index:0}
+.deco:hover::after{transform:scale(1.25)}.deco>*{position:relative;z-index:1}
+h1{font-size:32px;font-weight:800;letter-spacing:-1.2px;margin:0 0 4px;line-height:1.05}
+h2{font-size:19px;font-weight:800;letter-spacing:-.4px;margin:26px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+.sub{color:var(--mut);margin:0 0 18px;font-size:14px}
+input,textarea,select{width:100%;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;outline:none;transition:box-shadow .25s,transform .25s var(--ease)}
+input:focus,textarea:focus,select:focus{box-shadow:0 0 0 4px var(--lime);transform:translateY(-1px)}
+input::placeholder,textarea::placeholder{color:var(--mut)}
+textarea{min-height:150px;resize:vertical;line-height:1.5}
+.row{display:flex;gap:8px;margin-bottom:12px}.row>*{min-width:0}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.chip{border:1.5px solid var(--line);border-radius:18px;padding:10px;text-align:left;cursor:pointer;color:var(--on);position:relative;overflow:hidden;transition:transform .3s var(--spring)}
+.chip:hover{transform:translateY(-3px) rotate(-1deg)}.chip:active{transform:scale(.95)}
+.chip em{font-style:normal;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.65);margin-bottom:6px;font-size:14px}
+.chip b{display:block;font-size:24px;font-weight:800;line-height:1}.chip span{font-size:12px;font-weight:700;opacity:.75}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.note{position:relative;overflow:hidden;background:var(--card);border:1.5px solid var(--line);border-radius:22px;padding:14px;min-height:130px;cursor:pointer;word-break:break-word;transition:transform .3s var(--spring)}
+.note:hover{transform:translateY(-4px)}.note:active{transform:scale(.96)}
+.note::after{content:"";position:absolute;right:-30px;bottom:-30px;width:90px;height:90px;border-radius:50%;background:var(--c);transition:transform .5s var(--spring)}
+.note:hover::after{transform:scale(1.35)}
+.note>*{position:relative;z-index:1}
+.note .tag{margin-bottom:8px}.note h3{margin:0 0 6px;font-size:17px;font-weight:800;line-height:1.15;letter-spacing:-.3px}
+.note p{margin:0;font-size:13px;color:var(--mut);max-height:3.9em;overflow:hidden;white-space:pre-wrap;line-height:1.3}
+.tag{display:inline-block;border:1.5px solid var(--line);border-radius:8px;padding:1px 8px;font-size:11px;font-weight:700;background:var(--card);margin-right:4px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:12px;margin-bottom:10px;transition:transform .3s var(--spring),opacity .3s}
+.item:hover{transform:translateX(3px)}
+.item .t{flex:1;min-width:0;word-break:break-word}.item .t b{font-weight:700;transition:opacity .3s}
+.item .t small{display:flex;gap:6px;align-items:center;margin-top:3px;color:var(--mut);font-size:12px}
+.item.done .t b{text-decoration:line-through;opacity:.45}
+.chk{width:30px;height:30px;flex:none;border-radius:50%;border:1.5px solid var(--line);background:var(--card);cursor:pointer;font-weight:800;color:var(--on);padding:0;transition:background .25s,transform .35s var(--spring)}
+.chk:active{transform:scale(.8)}.done .chk{background:var(--lime);animation:pop .45s var(--spring)}
+.qty{min-width:20px;text-align:center;font-weight:800}
+.bar{height:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden;flex:1}
+.bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:14px;transition:width .9s var(--ease)}
+.prow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}.prow span:first-child{width:62px;font-weight:700}.prow span:last-child{width:48px;text-align:right;color:var(--mut);font-size:12px}
+.days{display:flex;justify-content:space-between;margin:14px 0 4px}
+.day{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--card);color:var(--ink)}
+.day.on{background:var(--lime);color:var(--on)}.day.today{box-shadow:0 0 0 3px var(--lav)}
+.streak{display:flex;justify-content:space-between;align-items:center}.streak h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+.streak b{font-size:34px;font-weight:800;display:flex;align-items:center;gap:2px}
+.banner{background:linear-gradient(135deg,#6d4dff,#9b7bff);color:#fff;border-color:var(--line)}
+.banner small{opacity:.85;font-weight:700}.banner .big{font-size:34px;font-weight:800;letter-spacing:-1px;margin-top:2px}
+.banner::after{content:"";position:absolute;right:-30px;bottom:-40px;width:130px;height:130px;border-radius:50%;background:var(--lime);opacity:.9}
+.empty{text-align:center;padding:26px 10px;color:var(--mut);font-size:14px;border:1.5px dashed var(--line);border-radius:22px;margin-bottom:12px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:0 16px calc(14px + env(safe-area-inset-bottom,0px));z-index:10;pointer-events:none}
+nav .in{position:relative;display:flex;width:100%;max-width:440px;background:#14121f;border-radius:999px;padding:6px;pointer-events:auto;box-shadow:0 12px 30px rgba(20,18,31,.35)}
+nav .ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/4);background:var(--lime);border-radius:999px;transform:translateX(calc(var(--i,0)*100%));transition:transform .55s var(--spring)}
+nav button{position:relative;z-index:1;flex:1;background:none;border:0;padding:8px 0;color:#c9c6dc;font-weight:700;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:color .3s}
+nav button svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .4s var(--spring)}
+nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1.12)}
+#modal{position:fixed;inset:0;background:rgba(20,18,31,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s}
+#modal.open{opacity:1;pointer-events:auto}
+.sheet{width:100%;max-width:560px;max-height:92%;overflow:auto;background:var(--bg);border:1.5px solid var(--line);border-radius:28px 28px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(100%);transition:transform .5s var(--spring)}
+#modal.open .sheet{transform:none}
+.sw{display:flex;gap:10px;margin:12px 0;align-items:center}
+.sw .c{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);cursor:pointer;padding:0;transition:transform .3s var(--spring)}
+.sw .c.on{transform:scale(1.25);box-shadow:0 0 0 3px var(--card)}
+/* animasi halaman: elemen naik bertahap, hanya saat pindah tab */
+.enter>*{animation:rise .6s var(--ease) both;animation-delay:calc(var(--i,0)*55ms)}
+.pop{animation:pop .5s var(--spring)}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97)}}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><div class="logo">zaim’s<i></i></div><button class="btn ic o" data-a="theme" aria-label="Tema">◐</button><div class="av">Z</div></header>
+  <!-- CATATAN: isi halaman dibuat lewat JS; jangan tambah paragraf penjelasan di sini -->
+  <main id="main"></main>
+</div>
+<nav><div class="in"><div class="ind"></div>
+  <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Beranda</button>
+  <button data-t="note"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 14h8M9 18h5"/></svg>Note</button>
+  <button data-t="wish"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-3-5.5 3 1-6.2L3 9.6l6.2-.9z"/></svg>Wish List</button>
+  <button data-t="shop"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg>Belanja</button>
+</div></nav>
+<div id="modal"></div>
+<script>
+// CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI. Semua string tampilan harus singkat.
+const COL=['#DFF65A','#D9D0FF','#FFE8A3','#FFC9DD','#BFF0E8'];
+const PR=['','Tinggi','Sedang','Rendah'],PC=['','#FFC9DD','#FFE8A3','#BFF0E8'];
+let S={notes:[],wish:[],shop:[]},tab='home',q='',fresh=null;
+try{const r=localStorage.getItem('zn');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem('zn',JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rp=n=>'Rp '+(Number(n)||0).toLocaleString('id-ID');
+const fd=t=>new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+const pct=(a,b)=>b?Math.round(a/b*100):0;
+const dk=t=>{const d=new Date(t);return d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()};
+const cls=id=>id===fresh?' pop':'';
+
+function sortedNotes(){return [...S.notes].sort((a,b)=>b.ts-a.ts)}
+function noteCard(n){return `<div class="note${cls(n.id)}" data-a="edit" data-id="${n.id}" style="--c:${n.color}"><span class="tag">${fd(n.ts)}</span><h3>${esc(n.title||'Tanpa judul')}</h3><p>${esc(n.body)}</p></div>`}
+function noteList(){
+  const k=q.toLowerCase(),l=sortedNotes().filter(n=>(n.title+' '+n.body).toLowerCase().includes(k));
+  return l.length?`<div class="grid">${l.map(noteCard).join('')}</div>`:`<div class="empty">${S.notes.length?'Tidak ketemu':'Belum ada note'}</div>`;
+}
+function streakData(){
+  const act=new Set(S.notes.map(n=>dk(n.ts))),days=[],now=new Date();
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push({l:'MSSRKJS'[d.getDay()],on:act.has(dk(d)),today:i===0})}
+  let s=0,i=days[6].on?6:5;while(i>=0&&days[i].on){s++;i--}
+  return {days,s};
+}
+// Beranda: teks singkat saja
+function home(){
+  const h=new Date().getHours(),g=h<11?'Selamat pagi':h<15?'Selamat siang':h<19?'Selamat sore':'Selamat malam';
+  const todo=S.shop.filter(i=>!i.done),wl=S.wish.filter(i=>!i.got),last=sortedNotes()[0],{days,s}=streakData();
+  const sp=pct(S.shop.length-todo.length,S.shop.length),wp=pct(S.wish.length-wl.length,S.wish.length);
+  return `<div><h1>${g}, Zaim!</h1><p class="sub">${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}</p></div>
+  <div class="chips"><button class="chip" data-t="note" style="background:var(--yel)"><em>📝</em><b data-n="${S.notes.length}">${S.notes.length}</b><span>Note</span></button>
+  <button class="chip" data-t="wish" style="background:var(--lav)"><em>⭐</em><b data-n="${wl.length}">${wl.length}</b><span>Wish</span></button>
+  <button class="chip" data-t="shop" style="background:var(--lime)"><em>🛒</em><b data-n="${todo.length}">${todo.length}</b><span>Belanja</span></button></div>
+  <div><h2>Lanjutkan</h2><div class="card deco"><span class="tag">Note terakhir</span><h3 style="margin:10px 0 14px;font-size:24px;font-weight:800;letter-spacing:-.7px;max-width:70%">${last?esc(last.title||'Tanpa judul'):'Mulai catat'}</h3>${last?`<button class="btn" data-a="edit" data-id="${last.id}">Buka</button>`:'<button class="btn" data-a="new">+ Baru</button>'}</div></div>
+  <div class="card"><div class="streak"><h3>Runtun<br>${s} hari</h3><b>⚡<span data-n="${s}">${s}</span></b></div>
+  <div class="days">${days.map(d=>`<div class="day${d.on?' on':''}${d.today?' today':''}">${d.on?'⚡':d.l}</div>`).join('')}</div>
+  <div class="prow"><span>Note</span><div class="bar"><i data-w="${Math.min(100,S.notes.length*10)}"></i></div><span>${S.notes.length}</span></div>
+  <div class="prow"><span>Belanja</span><div class="bar"><i data-w="${sp}"></i></div><span>${sp}%</span></div>
+  <div class="prow"><span>Wish</span><div class="bar"><i data-w="${wp}"></i></div><span>${wp}%</span></div></div>
+  <form class="row" data-f="quick"><input name="t" placeholder="Catat cepat" autocomplete="off"><button class="btn">Simpan</button></form>
+  <div><h2>Terbaru <button class="btn sm o" data-t="note">Semua</button></h2>${S.notes.length?`<div class="grid">${sortedNotes().slice(0,4).map(noteCard).join('')}</div>`:'<div class="empty">Belum ada note</div>'}</div>
+  <div><h2>Perlu dibeli <button class="btn sm o" data-t="shop">Buka</button></h2>${todo.length?todo.slice(0,4).map(i=>`<div class="item"><div class="t"><b>${esc(i.name)}</b></div><span class="tag">×${i.qty}</span></div>`).join(''):'<div class="empty">Kosong</div>'}</div>`;
+}
+// Halaman Note: label pendek
+function notePage(){return `<div><h1>Note</h1><p class="sub">Semua catatan</p></div>
+  <div class="row"><input id="search" type="search" placeholder="Cari" value="${esc(q)}"><button class="btn" data-a="new">+ Baru</button></div><div id="nl">${noteList()}</div>`}
+function wishList(){
+  const l=[...S.wish].sort((a,b)=>(a.got-b.got)||a.prio-b.prio);
+  return l.length?l.map(i=>`<div class="item${i.got?' done':''}${cls(i.id)}"><button class="chk" data-a="wgot" data-id="${i.id}">${i.got?'✓':''}</button><div class="t"><b>${esc(i.name)}</b><small><span class="tag" style="background:${PC[i.prio]};color:#14121f">${PR[i.prio]}</span>${i.price?rp(i.price):''}</small></div><button class="btn x" data-a="wdel" data-id="${i.id}" aria-label="Hapus">✕</button></div>`).join(''):'<div class="empty">Belum ada wish</div>';
+}
+// Halaman Wish List: label pendek
+function wishPage(){
+  const t=S.wish.filter(i=>!i.got).reduce((s,i)=>s+(Number(i.price)||0),0);
+  return `<div><h1>Wish List</h1><p class="sub">Yang ingin dimiliki</p></div>
+  <div class="card banner"><small>TOTAL</small><div class="big">${rp(t)}</div></div>
+  <form class="card" data-f="wish"><input name="n" placeholder="Nama barang" required style="margin-bottom:10px" autocomplete="off"><div class="row"><input name="p" type="number" min="0" inputmode="numeric" placeholder="Harga"><select name="r" style="width:42%"><option value="1">Tinggi</option><option value="2" selected>Sedang</option><option value="3">Rendah</option></select></div><button class="btn" style="width:100%">Tambah</button></form>
+  <div id="wl">${wishList()}</div>`;
+}
+function shopList(){
+  const l=[...S.shop].sort((a,b)=>a.done-b.done);
+  return l.length?l.map(i=>`<div class="item${i.done?' done':''}${cls(i.id)}"><button class="chk" data-a="sdone" data-id="${i.id}">${i.done?'✓':''}</button><div class="t"><b>${esc(i.name)}</b></div><button class="btn sm ic o" data-a="sminus" data-id="${i.id}" style="width:30px;height:30px">−</button><span class="qty">${i.qty}</span><button class="btn sm ic o" data-a="splus" data-id="${i.id}" style="width:30px;height:30px">+</button><button class="btn x" data-a="sdel" data-id="${i.id}" aria-label="Hapus">✕</button></div>`).join(''):'<div class="empty">Belum ada barang</div>';
+}
+// Halaman Belanja: label pendek
+function shopPage(){
+  const d=S.shop.filter(i=>i.done).length,n=S.shop.length,p=pct(d,n);
+  return `<div><h1>Belanja</h1><p class="sub">Centang kalau sudah</p></div>
+  <div class="card deco"><b>${d}/${n} item</b><div class="prow" style="margin:10px 0 12px"><div class="bar"><i data-w="${p}"></i></div><span>${p}%</span></div><button class="btn sm o" data-a="sclear">Hapus yang selesai</button></div>
+  <form class="row" data-f="shop"><input name="n" placeholder="Tambah barang" required autocomplete="off"><button class="btn">Tambah</button></form>
+  <div id="sl">${shopList()}</div>`;
+}
+function counts(){document.querySelectorAll('[data-n]').forEach(el=>{const to=+el.dataset.n,t0=performance.now();const f=t=>{const p=Math.min(1,(t-t0)/700);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
+function bars(anim){document.querySelectorAll('.bar i[data-w]').forEach(i=>{
+  if(!anim){i.style.width=i.dataset.w+'%';return}
+  i.style.width='0%';requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=i.dataset.w+'%'))})}
+function render(anim){
+  const m=$('#main');
+  m.className=anim?'enter':'';
+  m.innerHTML={home,note:notePage,wish:wishPage,shop:shopPage}[tab]();
+  [...m.children].forEach((c,i)=>c.style.setProperty('--i',i));
+  const idx=['home','note','wish','shop'].indexOf(tab);
+  $('nav .in').style.setProperty('--i',idx);
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  bars(anim);if(anim)counts();fresh=null;
+}
+function go(t){if(t===tab)return scrollTo({top:0});tab=t;q='';render(true);scrollTo(0,0)}
+
+function editor(id){
+  const n=id?S.notes.find(x=>x.id===id):{title:'',body:'',color:COL[0]};
+  if(!n)return;
+  window._ed={id,color:n.color,del:false};
+  $('#modal').innerHTML=`<div class="sheet"><input id="et" placeholder="Judul" value="${esc(n.title)}" style="font-weight:800;font-size:18px;margin-bottom:10px"><textarea id="eb" placeholder="Tulis...">${esc(n.body)}</textarea>
+  <div class="sw">${COL.map(c=>`<button class="c${c===n.color?' on':''}" data-a="color" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+  <div class="row"><button class="btn" data-a="save" style="flex:1">Simpan</button>${id?'<button class="btn o" data-a="del">Hapus</button>':''}<button class="btn o" data-a="close">Batal</button></div></div>`;
+  requestAnimationFrame(()=>$('#modal').classList.add('open'));
+}
+function closeM(){$('#modal').classList.remove('open');setTimeout(()=>{if(!$('#modal').classList.contains('open'))$('#modal').innerHTML=''},400)}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-t]');
+  if(t){go(t.dataset.t);return}
+  if(e.target===$('#modal')){closeM();return}
+  const el=e.target.closest('[data-a]');if(!el)return;
+  const a=el.dataset.a,id=el.dataset.id,E=window._ed,by=k=>S[k].find(x=>x.id===id);
+  if(a==='theme'){const r=document.documentElement,dark=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=dark?'light':'dark';return}
+  if(a==='new')return editor();
+  if(a==='edit')return editor(id);
+  if(a==='close')return closeM();
+  if(a==='color'){E.color=el.dataset.c;document.querySelectorAll('.sw .c').forEach(b=>b.classList.toggle('on',b.dataset.c===E.color));return}
+  if(a==='save'){
+    const title=$('#et').value.trim(),body=$('#eb').value.trim();
+    if(!title&&!body)return closeM();
+    if(E.id)Object.assign(S.notes.find(x=>x.id===E.id),{title,body,color:E.color,ts:Date.now()});
+    else{fresh=uid();S.notes.push({id:fresh,title,body,color:E.color,ts:Date.now()})}
+    save();closeM();return render();
+  }
+  if(a==='del'){
+    if(!E.del){E.del=true;el.textContent='Yakin?';return}
+    S.notes=S.notes.filter(x=>x.id!==E.id);save();closeM();return render();
+  }
+  if(a==='wgot')by('wish').got=!by('wish').got;
+  if(a==='wdel')S.wish=S.wish.filter(x=>x.id!==id);
+  if(a==='sdone')by('shop').done=!by('shop').done;
+  if(a==='splus')by('shop').qty++;
+  if(a==='sminus'){const i=by('shop');i.qty=Math.max(1,i.qty-1)}
+  if(a==='sdel')S.shop=S.shop.filter(x=>x.id!==id);
+  if(a==='sclear')S.shop=S.shop.filter(x=>!x.done);
+  save();render();
+});
+document.addEventListener('submit',e=>{
+  const f=e.target.dataset.f;if(!f)return;e.preventDefault();
+  const d=new FormData(e.target);
+  if(f==='quick'){
+    const t=(d.get('t')||'').trim();if(!t)return;
+    fresh=uid();S.notes.push({id:fresh,title:t,body:'',color:COL[S.notes.length%COL.length],ts:Date.now()});
+  }
+  if(f==='wish'){fresh=uid();S.wish.push({id:fresh,name:d.get('n').trim(),price:Number(d.get('p'))||0,prio:Number(d.get('r')),got:false})}
+  if(f==='shop'){
+    const name=d.get('n').trim(),ex=S.shop.find(i=>i.name.toLowerCase()===name.toLowerCase()&&!i.done);
+    if(ex)ex.qty++;else{fresh=uid();S.shop.push({id:fresh,name,qty:1,done:false})}
+  }
+  save();render();
+});
+document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
+render(true);
+</script>
+</body>
+</html>
