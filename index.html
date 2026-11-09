@@ -63,11 +63,11 @@ textarea{min-height:150px;resize:vertical;line-height:1.5}
 .bar{height:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden;flex:1}
 .bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:14px;transition:width .9s var(--ease)}
 .prow{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:14px}.prow span:first-child{width:62px;font-weight:700}.prow span:last-child{width:48px;text-align:right;color:var(--mut);font-size:12px}
-.days{display:flex;justify-content:space-between;margin:14px 0 4px}
-.day{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:13px;background:var(--card);color:var(--ink)}
-.day.on{background:var(--lime);color:var(--on)}.day.today{box-shadow:0 0 0 3px var(--lav)}
-.streak{display:flex;justify-content:space-between;align-items:center}.streak h3{margin:0;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
-.streak b{font-size:34px;font-weight:800;display:flex;align-items:center;gap:2px}
+.fire{display:flex;align-items:center;gap:3px;font-weight:800;font-size:19px;letter-spacing:-.5px;line-height:1}
+.fire svg{width:28px;height:28px;transform-origin:50% 90%;filter:drop-shadow(0 0 6px rgba(255,110,0,.55));animation:flick 1.3s ease-in-out infinite}
+.fire .fo{fill:url(#fg)}.fire .fi{fill:#FFD84D}
+.fire.off svg{filter:none;animation:none}.fire.off .fo{fill:var(--mut);opacity:.45}.fire.off .fi{display:none}
+@keyframes flick{0%,100%{transform:scale(1) rotate(-2deg)}30%{transform:scale(1.06,1.12) rotate(2deg)}60%{transform:scale(.97,1.04) rotate(-1deg)}}
 .banner{background:linear-gradient(135deg,#6d4dff,#9b7bff);color:#fff;border-color:var(--line)}
 .banner small{opacity:.85;font-weight:700}.banner .big{font-size:34px;font-weight:800;letter-spacing:-1px;margin-top:2px}
 .banner::after{content:"";position:absolute;right:-30px;bottom:-40px;width:130px;height:130px;border-radius:50%;background:var(--lime);opacity:.9}
@@ -118,7 +118,7 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 </head>
 <body>
 <div id="app">
-  <header><div class="logo">zaim’s<i></i></div><button class="btn ic o" data-a="theme" aria-label="Tema">◐</button><div class="av">Z</div></header>
+  <header><div class="logo">zaim’s<i></i></div><div class="fire off" id="fire" aria-label="Streak"><svg viewBox="0 0 24 24"><defs><linearGradient id="fg" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF3D00"/><stop offset="1" stop-color="#FF9E00"/></linearGradient></defs><path class="fo" d="M19.48 12.35c-1.57-4.08-7.16-4.3-5.81-10.23.1-.44-.37-.78-.75-.55C9.29 3.71 6.68 8 8.87 13.62c.18.46-.36.89-.75.59-1.81-1.37-2-3.34-1.84-4.75.06-.52-.62-.77-.91-.34C4.69 10.16 4 11.84 4 14.37c.38 5.6 5.11 7.32 6.81 7.54 2.43.31 5.06-.14 6.95-1.87 2.08-1.93 2.84-5.01 1.72-7.69z"/><path class="fi" d="M10.2 17.38c1.44-.35 2.18-1.39 2.38-2.31.33-1.43-.96-2.83-.09-5.09.33 1.87 3.27 3.04 3.27 5.08 0 2.51-2.74 4.68-5.56 2.32z"/></svg><span id="fireN">0</span></div><button class="btn ic o" data-a="theme" aria-label="Tema">◐</button><div class="av">Z</div></header>
   <!-- CATATAN: isi halaman dibuat lewat JS; jangan tambah paragraf penjelasan di sini -->
   <main id="main"></main>
 </div>
@@ -126,7 +126,7 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
   <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Beranda</button>
   <button data-t="note"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6z"/><path d="M14 3v6h6M9 14h8M9 18h5"/></svg>Note</button>
   <button data-t="wish"><svg viewBox="0 0 24 24"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2-5.5-3-5.5 3 1-6.2L3 9.6l6.2-.9z"/></svg>Wish List</button>
-  <button data-t="shop"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg>Belanja</button>
+  <button data-t="todo"><svg viewBox="0 0 24 24"><path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6.5h9M11 12.5h9M11 18.5h9"/></svg>To Do</button>
 </div></nav>
 <div id="modal"></div>
 <button id="aiFab" aria-label="Asisten"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button>
@@ -139,9 +139,11 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI. Semua string tampilan harus singkat.
 const COL=['#DFF65A','#D9D0FF','#FFE8A3','#FFC9DD','#BFF0E8'];
 const PR=['','Tinggi','Sedang','Rendah'],PC=['','#FFC9DD','#FFE8A3','#BFF0E8'];
-let S={notes:[],wish:[],shop:[]},tab='home',q='',fresh=null;
+let S={notes:[],wish:[],folders:[],todos:[]},tab='home',q='',fresh=null,fid=null;
 try{const r=localStorage.getItem('zn');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 const save=()=>{try{localStorage.setItem('zn',JSON.stringify(S))}catch(e){}};
+// Migrasi: daftar belanja lama jadi folder "Belanja"
+if(S.shop){if(S.shop.length&&!S.folders.length){const f={id:Date.now().toString(36)+'bl',name:'Belanja',color:COL[0]};S.folders.push(f);S.shop.forEach((i,k)=>S.todos.push({id:i.id,fid:f.id,text:i.name+(i.qty>1?' ×'+i.qty:''),done:!!i.done,ts:Date.now()+k}))}delete S.shop;save()}
 const $=s=>document.querySelector(s);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -157,30 +159,22 @@ function noteList(){
   const k=q.toLowerCase(),l=sortedNotes().filter(n=>(n.title+' '+n.body).toLowerCase().includes(k));
   return l.length?`<div class="grid">${l.map(noteCard).join('')}</div>`:`<div class="empty">${S.notes.length?'Tidak ketemu':'Belum ada note'}</div>`;
 }
-function streakData(){
-  const act=new Set(S.notes.map(n=>dk(n.ts))),days=[],now=new Date();
-  for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);days.push({l:'MSSRKJS'[d.getDay()],on:act.has(dk(d)),today:i===0})}
-  let s=0,i=days[6].on?6:5;while(i>=0&&days[i].on){s++;i--}
-  return {days,s};
+function streakCount(){
+  const act=new Set([...S.notes.map(n=>dk(n.ts)),...S.todos.filter(t=>t.dt).map(t=>dk(t.dt))]);
+  const d=new Date();if(!act.has(dk(d)))d.setDate(d.getDate()-1);
+  let s=0;while(act.has(dk(d))){s++;d.setDate(d.getDate()-1)}
+  return s;
 }
+function fire(){const s=streakCount();$('#fire').classList.toggle('off',!s);$('#fireN').textContent=s}
+const tgl=t=>{t.done=!t.done;if(t.done)t.dt=Date.now();else delete t.dt};
 // Beranda: teks singkat saja
 function home(){
   const h=new Date().getHours(),g=h<11?'Selamat pagi':h<15?'Selamat siang':h<19?'Selamat sore':'Selamat malam';
-  const todo=S.shop.filter(i=>!i.done),wl=S.wish.filter(i=>!i.got),last=sortedNotes()[0],{days,s}=streakData();
-  const sp=pct(S.shop.length-todo.length,S.shop.length),wp=pct(S.wish.length-wl.length,S.wish.length);
+  const open=S.todos.filter(t=>!t.done).sort((a,b)=>a.ts-b.ts).slice(0,4),fn=id=>(S.folders.find(f=>f.id===id)||{}).name||'';
   return `<div><h1>${g}, Zaim!</h1><p class="sub">${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}</p></div>
-  <div class="chips"><button class="chip" data-t="note" style="background:var(--yel)"><em>📝</em><b data-n="${S.notes.length}">${S.notes.length}</b><span>Note</span></button>
-  <button class="chip" data-t="wish" style="background:var(--lav)"><em>⭐</em><b data-n="${wl.length}">${wl.length}</b><span>Wish</span></button>
-  <button class="chip" data-t="shop" style="background:var(--lime)"><em>🛒</em><b data-n="${todo.length}">${todo.length}</b><span>Belanja</span></button></div>
-  <div><h2>Lanjutkan</h2><div class="card deco"><span class="tag">Note terakhir</span><h3 style="margin:10px 0 14px;font-size:24px;font-weight:800;letter-spacing:-.7px;max-width:70%">${last?esc(last.title||'Tanpa judul'):'Mulai catat'}</h3>${last?`<button class="btn" data-a="edit" data-id="${last.id}">Buka</button>`:'<button class="btn" data-a="new">+ Baru</button>'}</div></div>
-  <div class="card"><div class="streak"><h3>Runtun<br>${s} hari</h3><b>⚡<span data-n="${s}">${s}</span></b></div>
-  <div class="days">${days.map(d=>`<div class="day${d.on?' on':''}${d.today?' today':''}">${d.on?'⚡':d.l}</div>`).join('')}</div>
-  <div class="prow"><span>Note</span><div class="bar"><i data-w="${Math.min(100,S.notes.length*10)}"></i></div><span>${S.notes.length}</span></div>
-  <div class="prow"><span>Belanja</span><div class="bar"><i data-w="${sp}"></i></div><span>${sp}%</span></div>
-  <div class="prow"><span>Wish</span><div class="bar"><i data-w="${wp}"></i></div><span>${wp}%</span></div></div>
   <form class="row" data-f="quick"><input name="t" placeholder="Catat cepat" autocomplete="off"><button class="btn">Simpan</button></form>
   <div><h2>Terbaru <button class="btn sm o" data-t="note">Semua</button></h2>${S.notes.length?`<div class="grid">${sortedNotes().slice(0,4).map(noteCard).join('')}</div>`:'<div class="empty">Belum ada note</div>'}</div>
-  <div><h2>Perlu dibeli <button class="btn sm o" data-t="shop">Buka</button></h2>${todo.length?todo.slice(0,4).map(i=>`<div class="item"><div class="t"><b>${esc(i.name)}</b></div><span class="tag">×${i.qty}</span></div>`).join(''):'<div class="empty">Kosong</div>'}</div>`;
+  <div><h2>To Do <button class="btn sm o" data-t="todo">Buka</button></h2>${open.length?open.map(t=>`<div class="item"><button class="chk" data-a="tdone" data-id="${t.id}"></button><div class="t"><b>${esc(t.text)}</b><small><span class="tag">${esc(fn(t.fid))}</span></small></div></div>`).join(''):'<div class="empty">Kosong</div>'}</div>`;
 }
 // Halaman Note: label pendek
 function notePage(){return `<div><h1>Note</h1><p class="sub">Semua catatan</p></div>
@@ -197,17 +191,29 @@ function wishPage(){
   <form class="card" data-f="wish"><input name="n" placeholder="Nama barang" required style="margin-bottom:10px" autocomplete="off"><div class="row"><input name="p" type="number" min="0" inputmode="numeric" placeholder="Harga"><select name="r" style="width:42%"><option value="1">Tinggi</option><option value="2" selected>Sedang</option><option value="3">Rendah</option></select></div><button class="btn" style="width:100%">Tambah</button></form>
   <div id="wl">${wishList()}</div>`;
 }
-function shopList(){
-  const l=[...S.shop].sort((a,b)=>a.done-b.done);
-  return l.length?l.map(i=>`<div class="item${i.done?' done':''}${cls(i.id)}"><button class="chk" data-a="sdone" data-id="${i.id}">${i.done?'✓':''}</button><div class="t"><b>${esc(i.name)}</b></div><button class="btn sm ic o" data-a="sminus" data-id="${i.id}" style="width:30px;height:30px">−</button><span class="qty">${i.qty}</span><button class="btn sm ic o" data-a="splus" data-id="${i.id}" style="width:30px;height:30px">+</button><button class="btn x" data-a="sdel" data-id="${i.id}" aria-label="Hapus">✕</button></div>`).join(''):'<div class="empty">Belum ada barang</div>';
+// Halaman To Do: label pendek
+function folderCard(f){
+  const it=S.todos.filter(t=>t.fid===f.id),d=it.filter(t=>t.done).length,op=it.filter(t=>!t.done).slice(0,2);
+  return `<div class="note${cls(f.id)}" data-a="fopen" data-id="${f.id}" style="--c:${f.color}"><span class="tag">${d}/${it.length}</span><h3>${esc(f.name)}</h3><p>${op.length?op.map(t=>'• '+esc(t.text)).join('\n'):(it.length?'Selesai':'Kosong')}</p></div>`;
 }
-// Halaman Belanja: label pendek
-function shopPage(){
-  const d=S.shop.filter(i=>i.done).length,n=S.shop.length,p=pct(d,n);
-  return `<div><h1>Belanja</h1><p class="sub">Centang kalau sudah</p></div>
-  <div class="card deco"><b>${d}/${n} item</b><div class="prow" style="margin:10px 0 12px"><div class="bar"><i data-w="${p}"></i></div><span>${p}%</span></div><button class="btn sm o" data-a="sclear">Hapus yang selesai</button></div>
-  <form class="row" data-f="shop"><input name="n" placeholder="Tambah barang" required autocomplete="off"><button class="btn">Tambah</button></form>
-  <div id="sl">${shopList()}</div>`;
+function todoList(it){
+  return it.length?it.map(t=>`<div class="item${t.done?' done':''}${cls(t.id)}"><button class="chk" data-a="tdone" data-id="${t.id}">${t.done?'✓':''}</button><div class="t"><b>${esc(t.text)}</b></div><button class="btn x" data-a="tdel" data-id="${t.id}" aria-label="Hapus">✕</button></div>`).join(''):'<div class="empty">Belum ada to do</div>';
+}
+function folderPage(f){
+  const it=S.todos.filter(t=>t.fid===f.id).sort((a,b)=>(a.done-b.done)||a.ts-b.ts),d=it.filter(t=>t.done).length,p=pct(d,it.length);
+  return `<div><button class="btn sm o" data-a="fback">‹ Folder</button></div>
+  <div><h1>${esc(f.name)}</h1><p class="sub">${d}/${it.length} selesai</p></div>
+  <div class="card deco" style="--c:${f.color}"><div class="prow" style="margin:0"><div class="bar"><i data-w="${p}"></i></div><span>${p}%</span></div><div class="row" style="margin:12px 0 0"><button class="btn sm o" data-a="tclear">Hapus selesai</button><button class="btn sm o" data-a="fedit">Ubah</button></div></div>
+  <form class="row" data-f="todo"><input name="n" placeholder="Tambah to do" required autocomplete="off"><button class="btn">Tambah</button></form>
+  <div id="tl">${todoList(it)}</div>`;
+}
+function todoPage(){
+  const f=fid&&S.folders.find(x=>x.id===fid);
+  if(f)return folderPage(f);
+  fid=null;
+  return `<div><h1>To Do</h1><p class="sub">Folder tugas</p></div>
+  <form class="row" data-f="folder"><input name="n" placeholder="Folder baru" required autocomplete="off"><button class="btn">Buat</button></form>
+  <div id="fl">${S.folders.length?`<div class="grid">${S.folders.map(folderCard).join('')}</div>`:'<div class="empty">Belum ada folder</div>'}</div>`;
 }
 function counts(){document.querySelectorAll('[data-n]').forEach(el=>{const to=+el.dataset.n,t0=performance.now();const f=t=>{const p=Math.min(1,(t-t0)/700);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function bars(anim){document.querySelectorAll('.bar i[data-w]').forEach(i=>{
@@ -216,14 +222,14 @@ function bars(anim){document.querySelectorAll('.bar i[data-w]').forEach(i=>{
 function render(anim){
   const m=$('#main');
   m.className=anim?'enter':'';
-  m.innerHTML={home,note:notePage,wish:wishPage,shop:shopPage}[tab]();
+  m.innerHTML={home,note:notePage,wish:wishPage,todo:todoPage}[tab]();
   [...m.children].forEach((c,i)=>c.style.setProperty('--i',i));
-  const idx=['home','note','wish','shop'].indexOf(tab);
+  const idx=['home','note','wish','todo'].indexOf(tab);
   $('nav .in').style.setProperty('--i',idx);
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
-  bars(anim);if(anim)counts();fresh=null;
+  fire();bars(anim);if(anim)counts();fresh=null;
 }
-function go(t){if(t===tab)return scrollTo({top:0});tab=t;q='';render(true);scrollTo(0,0)}
+function go(t){if(t===tab){if(fid){fid=null;render(true)}return scrollTo({top:0})}tab=t;q='';fid=null;render(true);scrollTo(0,0)}
 
 function editor(id){
   const n=id?S.notes.find(x=>x.id===id):{title:'',body:'',color:COL[0]};
@@ -235,6 +241,15 @@ function editor(id){
   requestAnimationFrame(()=>$('#modal').classList.add('open'));
 }
 function closeM(){$('#modal').classList.remove('open');setTimeout(()=>{if(!$('#modal').classList.contains('open'))$('#modal').innerHTML=''},400)}
+
+function folderEditor(id){
+  const f=S.folders.find(x=>x.id===id);if(!f)return;
+  window._ed={id,color:f.color,del:false};
+  $('#modal').innerHTML=`<div class="sheet"><input id="fn" placeholder="Nama folder" value="${esc(f.name)}" style="font-weight:800;font-size:18px;margin-bottom:10px">
+  <div class="sw">${COL.map(c=>`<button class="c${c===f.color?' on':''}" data-a="color" data-c="${c}" style="background:${c}"></button>`).join('')}</div>
+  <div class="row"><button class="btn" data-a="fsave" style="flex:1">Simpan</button><button class="btn o" data-a="fdel">Hapus</button><button class="btn o" data-a="close">Batal</button></div></div>`;
+  requestAnimationFrame(()=>$('#modal').classList.add('open'));
+}
 
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-t]');
@@ -260,11 +275,22 @@ document.addEventListener('click',e=>{
   }
   if(a==='wgot')by('wish').got=!by('wish').got;
   if(a==='wdel')S.wish=S.wish.filter(x=>x.id!==id);
-  if(a==='sdone')by('shop').done=!by('shop').done;
-  if(a==='splus')by('shop').qty++;
-  if(a==='sminus'){const i=by('shop');i.qty=Math.max(1,i.qty-1)}
-  if(a==='sdel')S.shop=S.shop.filter(x=>x.id!==id);
-  if(a==='sclear')S.shop=S.shop.filter(x=>!x.done);
+  if(a==='fopen'){fid=id;render(true);scrollTo(0,0);return}
+  if(a==='fback'){fid=null;render(true);scrollTo(0,0);return}
+  if(a==='fedit')return folderEditor(fid);
+  if(a==='fsave'){
+    const f=S.folders.find(x=>x.id===E.id),n=$('#fn').value.trim();
+    if(f){if(n)f.name=n;f.color=E.color}
+    save();closeM();return render();
+  }
+  if(a==='fdel'){
+    if(!E.del){E.del=true;el.textContent='Yakin?';return}
+    S.folders=S.folders.filter(x=>x.id!==E.id);S.todos=S.todos.filter(x=>x.fid!==E.id);fid=null;
+    save();closeM();return render(true);
+  }
+  if(a==='tdone'){const t=by('todos');if(t)tgl(t)}
+  if(a==='tdel')S.todos=S.todos.filter(x=>x.id!==id);
+  if(a==='tclear')S.todos=S.todos.filter(x=>!(x.fid===fid&&x.done));
   save();render();
 });
 document.addEventListener('submit',e=>{
@@ -275,11 +301,10 @@ document.addEventListener('submit',e=>{
     fresh=uid();S.notes.push({id:fresh,title:t,body:'',color:COL[S.notes.length%COL.length],ts:Date.now()});
   }
   if(f==='wish'){fresh=uid();S.wish.push({id:fresh,name:d.get('n').trim(),price:Number(d.get('p'))||0,prio:Number(d.get('r')),got:false})}
-  if(f==='shop'){
-    const name=d.get('n').trim(),ex=S.shop.find(i=>i.name.toLowerCase()===name.toLowerCase()&&!i.done);
-    if(ex)ex.qty++;else{fresh=uid();S.shop.push({id:fresh,name,qty:1,done:false})}
-  }
+  if(f==='folder'){const n=(d.get('n')||'').trim();if(!n)return;fresh=uid();S.folders.push({id:fresh,name:n,color:COL[S.folders.length%COL.length]})}
+  if(f==='todo'){const n=(d.get('n')||'').trim();if(!n||!fid)return;fresh=uid();S.todos.push({id:fresh,fid,text:n,done:false,ts:Date.now()})}
   save();render();
+  if(f==='todo'){const i=document.querySelector('[data-f="todo"] input');if(i)i.focus()}
 });
 document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
 // ===== Asisten AI =====
@@ -293,23 +318,27 @@ const AI_TOOLS=[{functionDeclarations:[
  {name:'add_note',description:'Tambah note baru',parameters:{type:'OBJECT',properties:{title:{type:'STRING'},body:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['title']}},
  {name:'edit_note',description:'Ubah note (judul, isi, atau warna) berdasarkan id. Isi baru menimpa seluruh isi lama.',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},title:{type:'STRING'},body:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['id']}},
  {name:'delete_note',description:'Hapus satu note berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
- {name:'add_shop',description:'Tambah barang ke daftar belanja',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},qty:{type:'INTEGER'}},required:['name']}},
- {name:'set_shop',description:'Ubah barang belanja: centang selesai atau atur jumlah',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},done:{type:'BOOLEAN'},qty:{type:'INTEGER'}},required:['id']}},
- {name:'delete_shop',description:'Hapus satu barang belanja berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
- {name:'clear_shop_done',description:'Hapus semua barang belanja yang sudah selesai'},
+ {name:'add_folder',description:'Buat folder to do (kategori)',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['name']}},
+ {name:'edit_folder',description:'Ubah nama atau warna folder berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},name:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['id']}},
+ {name:'delete_folder',description:'Hapus folder beserta semua to do di dalamnya',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
+ {name:'add_todo',description:'Tambah to do ke folder. Isi folder_id, atau folder_name (folder dibuat otomatis kalau belum ada)',parameters:{type:'OBJECT',properties:{text:{type:'STRING'},folder_id:{type:'STRING'},folder_name:{type:'STRING'}},required:['text']}},
+ {name:'set_todo',description:'Ubah to do: teks, centang selesai, atau pindah ke folder lain',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},text:{type:'STRING'},done:{type:'BOOLEAN'},folder_id:{type:'STRING'}},required:['id']}},
+ {name:'delete_todo',description:'Hapus satu to do berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
+ {name:'clear_todo_done',description:'Hapus to do yang sudah selesai: semua folder, atau satu folder kalau folder_id diisi',parameters:{type:'OBJECT',properties:{folder_id:{type:'STRING'}}}},
  {name:'add_wish',description:'Tambah barang ke wish list. prio: 1 tinggi, 2 sedang, 3 rendah',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'}},required:['name']}},
  {name:'set_wish',description:'Ubah wish: nama, harga, prioritas (1 tinggi, 2 sedang, 3 rendah), atau tandai sudah didapat',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'},got:{type:'BOOLEAN'}},required:['id']}},
  {name:'delete_wish',description:'Hapus satu wish berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
  {name:'set_theme',description:'Ganti tema tampilan app',parameters:{type:'OBJECT',properties:{mode:{type:'STRING',enum:['terang','gelap']}},required:['mode']}},
- {name:'open_tab',description:'Buka halaman app',parameters:{type:'OBJECT',properties:{tab:{type:'STRING',enum:['home','note','wish','shop']}},required:['tab']}}
+ {name:'open_tab',description:'Buka halaman app. Untuk tab todo, folder_id membuka folder tertentu',parameters:{type:'OBJECT',properties:{tab:{type:'STRING',enum:['home','note','wish','todo']},folder_id:{type:'STRING'}},required:['tab']}}
 ]}];
 function aiSystem(){
   const data=JSON.stringify({
     note:sortedNotes().slice(0,30).map(n=>{const b=n.body||'',o={id:n.id,judul:n.title,isi:b.slice(0,1500),warna:AI_COLN[COL.indexOf(n.color)]||'',tgl:fd(n.ts)};if(b.length>1500)o.terpotong=true;return o}),
-    wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got})),
-    belanja:S.shop.map(i=>({id:i.id,nama:i.name,jumlah:i.qty,selesai:!!i.done}))
+    folder:S.folders.map(f=>({id:f.id,nama:f.name,warna:AI_COLN[COL.indexOf(f.color)]||''})),
+    todo:S.todos.map(t=>({id:t.id,folder_id:t.fid,teks:t.text,selesai:!!t.done})),
+    wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got}))
   });
-  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kamu bisa menambah, mengubah (isi, warna note, centang belanja, harga/prioritas wish), dan menghapus note, wish, dan belanja, mengganti tema, dan membuka halaman lewat tool. Pakai id dari data. Jangan mengarang data atau id. Warna note: lime, ungu, kuning, pink, tosca. Sebelum menghapus, pastikan item yang dimaksud jelas; kalau ambigu atau jumlahnya banyak, tanya dulu. Jangan ubah isi note yang bertanda terpotong.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
+  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kamu bisa menambah, mengubah, dan menghapus note (termasuk warna), folder to do, isi to do (centang selesai, pindah folder), dan wish, juga mengganti tema dan membuka halaman, semua lewat tool. Belanja sekarang berupa folder to do. Pakai id dari data. Jangan mengarang data atau id. Untuk menambah to do, pakai folder_id yang ada, atau folder_name (folder baru dibuat otomatis). Warna note dan folder: lime, ungu, kuning, pink, tosca. Sebelum menghapus, pastikan item yang dimaksud jelas; kalau ambigu atau jumlahnya banyak, tanya dulu. Menghapus folder ikut menghapus semua to do di dalamnya. Jangan ubah isi note yang bertanda terpotong.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
 }
 function aiAdd(c,t){
   const el=document.createElement('div');el.className='m '+c;
@@ -317,37 +346,60 @@ function aiAdd(c,t){
   const box=$('#aim');box.insertBefore(el,AI.dots&&AI.dots.parentNode===box?AI.dots:null);
   box.scrollTop=box.scrollHeight;return el;
 }
+function aiFolder(a){
+  let f=S.folders.find(x=>x.id===String(a.folder_id||''));
+  const n=String(a.folder_name||'').trim();
+  if(!f&&n){f=S.folders.find(x=>x.name.toLowerCase()===n.toLowerCase());
+    if(!f){f={id:uid(),name:n,color:COL[S.folders.length%COL.length]};S.folders.push(f);aiAdd('t','✓ Folder: '+f.name)}}
+  return f;
+}
 function aiTool(name,a){
   const id=String(a.id||''),str=v=>String(v==null?'':v).trim(),int=(v,d)=>{const x=Math.round(Number(v));return isNaN(x)?d:x};
-  const nt=()=>S.notes.find(x=>x.id===id),ws=()=>S.wish.find(x=>x.id===id),sp=()=>S.shop.find(x=>x.id===id);
-  const NF='id tidak ditemukan';
+  const nt=()=>S.notes.find(x=>x.id===id),ws=()=>S.wish.find(x=>x.id===id),fl=()=>S.folders.find(x=>x.id===id),td=()=>S.todos.find(x=>x.id===id);
+  const NF='id tidak ditemukan',cix=v=>AI_COLN.indexOf(str(v).toLowerCase());
+  let res='ok';
   if(name==='add_note'){
     const t=str(a.title),b=str(a.body);if(!t&&!b)return 'kosong';
-    const k=AI_COLN.indexOf(str(a.color).toLowerCase());
+    const k=cix(a.color);
     fresh=uid();S.notes.push({id:fresh,title:t,body:b,color:COL[k>=0?k:S.notes.length%COL.length],ts:Date.now()});aiAdd('t','✓ Note: '+(t||'Tanpa judul'));
   }else if(name==='edit_note'){
     const n=nt();if(!n)return NF;
-    if(a.color!==undefined){const k=AI_COLN.indexOf(str(a.color).toLowerCase());if(k<0)return 'warna tidak dikenal: '+AI_COLN.join(', ');n.color=COL[k]}
+    if(a.color!==undefined){const k=cix(a.color);if(k<0)return 'warna tidak dikenal: '+AI_COLN.join(', ');n.color=COL[k]}
     if(a.title!==undefined||a.body!==undefined){if(a.title!==undefined)n.title=str(a.title);if(a.body!==undefined)n.body=str(a.body);n.ts=Date.now()}
     aiAdd('t','✓ Note diubah: '+(n.title||'Tanpa judul'));
   }else if(name==='delete_note'){
     const n=nt();if(!n)return NF;
     S.notes=S.notes.filter(x=>x.id!==id);aiAdd('t','✓ Note dihapus: '+(n.title||'Tanpa judul'));
-  }else if(name==='add_shop'){
+  }else if(name==='add_folder'){
     const n=str(a.name);if(!n)return 'kosong';
-    const qty=Math.max(1,int(a.qty,1)),ex=S.shop.find(i=>i.name.toLowerCase()===n.toLowerCase()&&!i.done);
-    if(ex)ex.qty+=qty;else{fresh=uid();S.shop.push({id:fresh,name:n,qty,done:false})}
-    aiAdd('t','✓ Belanja: '+n);
-  }else if(name==='set_shop'){
-    const i=sp();if(!i)return NF;
-    if(a.done!==undefined)i.done=!!a.done;
-    if(a.qty!==undefined)i.qty=Math.max(1,int(a.qty,1));
-    aiAdd('t','✓ Belanja diubah: '+i.name);
-  }else if(name==='delete_shop'){
-    const i=sp();if(!i)return NF;
-    S.shop=S.shop.filter(x=>x.id!==id);aiAdd('t','✓ Belanja dihapus: '+i.name);
-  }else if(name==='clear_shop_done'){
-    const c=S.shop.filter(x=>x.done).length;S.shop=S.shop.filter(x=>!x.done);aiAdd('t','✓ '+c+' item selesai dihapus');
+    const k=cix(a.color);fresh=uid();S.folders.push({id:fresh,name:n,color:COL[k>=0?k:S.folders.length%COL.length]});
+    aiAdd('t','✓ Folder: '+n);res='ok, id='+fresh;
+  }else if(name==='edit_folder'){
+    const f=fl();if(!f)return NF;
+    if(a.color!==undefined){const k=cix(a.color);if(k<0)return 'warna tidak dikenal: '+AI_COLN.join(', ');f.color=COL[k]}
+    if(a.name!==undefined&&str(a.name))f.name=str(a.name);
+    aiAdd('t','✓ Folder diubah: '+f.name);
+  }else if(name==='delete_folder'){
+    const f=fl();if(!f)return NF;
+    S.folders=S.folders.filter(x=>x.id!==id);S.todos=S.todos.filter(x=>x.fid!==id);if(fid===id)fid=null;
+    aiAdd('t','✓ Folder dihapus: '+f.name);
+  }else if(name==='add_todo'){
+    const t=str(a.text);if(!t)return 'kosong';
+    const f=aiFolder(a);if(!f)return 'folder tidak ditemukan; isi folder_id atau folder_name';
+    fresh=uid();S.todos.push({id:fresh,fid:f.id,text:t,done:false,ts:Date.now()});
+    aiAdd('t','✓ To do: '+t);res='ok, folder_id='+f.id;
+  }else if(name==='set_todo'){
+    const t=td();if(!t)return NF;
+    if(a.folder_id!==undefined){const f=S.folders.find(x=>x.id===str(a.folder_id));if(!f)return 'folder tidak ditemukan';t.fid=f.id}
+    if(a.text!==undefined&&str(a.text))t.text=str(a.text);
+    if(a.done!==undefined&&!!a.done!==!!t.done)tgl(t);
+    aiAdd('t','✓ To do diubah: '+t.text);
+  }else if(name==='delete_todo'){
+    const t=td();if(!t)return NF;
+    S.todos=S.todos.filter(x=>x.id!==id);aiAdd('t','✓ To do dihapus: '+t.text);
+  }else if(name==='clear_todo_done'){
+    const ff=str(a.folder_id),m=x=>x.done&&(!ff||x.fid===ff),c=S.todos.filter(m).length;
+    S.todos=S.todos.filter(x=>!m(x));aiAdd('t','✓ '+c+' to do selesai dihapus');
   }else if(name==='add_wish'){
     const n=str(a.name);if(!n)return 'kosong';
     const r=int(a.prio,2);fresh=uid();S.wish.push({id:fresh,name:n,price:Math.max(0,Number(a.price))||0,prio:[1,2,3].includes(r)?r:2,got:false});
@@ -365,10 +417,12 @@ function aiTool(name,a){
   }else if(name==='set_theme'){
     const g=str(a.mode)==='gelap';document.documentElement.dataset.theme=g?'dark':'light';aiAdd('t','✓ Tema '+(g?'gelap':'terang'));return 'ok';
   }else if(name==='open_tab'){
-    const t=str(a.tab);if(!['home','note','wish','shop'].includes(t))return 'halaman tidak dikenal';
-    go(t);return 'ok';
+    const t=str(a.tab);if(!['home','note','wish','todo'].includes(t))return 'halaman tidak dikenal';
+    go(t);
+    if(t==='todo'&&a.folder_id&&S.folders.some(x=>x.id===str(a.folder_id))){fid=str(a.folder_id);render(true)}
+    return 'ok';
   }else return 'tool tidak dikenal';
-  save();render();return 'ok';
+  save();render();return res;
 }
 function aiTrim(){
   while(AI.msgs.length>24){AI.msgs.shift();while(AI.msgs.length&&!(AI.msgs[0].role==='user'&&AI.msgs[0].parts[0]&&AI.msgs[0].parts[0].text!==undefined))AI.msgs.shift()}
@@ -422,7 +476,7 @@ function aiView(){
 }
 function aiSuggest(){
   const box=$('#aim');if(box.children.length)return;
-  box.innerHTML='<div class="sg"><button class="btn sm o" data-s="Ringkas note-ku">Ringkas note</button><button class="btn sm o" data-s="Kasih ide wish list">Ide wish</button><button class="btn sm o" data-p="Tambah belanja: ">Tambah belanja</button></div>';
+  box.innerHTML='<div class="sg"><button class="btn sm o" data-s="Ringkas note-ku">Ringkas note</button><button class="btn sm o" data-s="Kasih ide wish list">Ide wish</button><button class="btn sm o" data-p="Tambah to do: ">Tambah to do</button></div>';
 }
 function aiOpen(){
   $('#ai').classList.add('open');
