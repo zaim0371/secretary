@@ -165,7 +165,7 @@ const OBJ={
 };
 const emptyS=()=>({notes:[],wish:[],folders:[],todos:[]});
 const emptyL=()=>({notes:{},folders:{},todos:{},wish:{}});
-let usr=null,busy=false,again=false,tmr=0,rtr=0,dirty=0,last=emptyL();
+let usr=null,busy=false,again=false,tmr=0,rtr=0,dirty=0,lastFl=0,rtCh=null,rtT=0,last=emptyL();
 try{const l=localStorage.getItem('zn_last');if(l)last=Object.assign(last,JSON.parse(l))}catch(e){}
 const setSt=c=>{const a=document.querySelector('.av');if(a){a.classList.toggle('sy',c==='sy');a.classList.toggle('err',c==='err')}};
 const save=()=>{try{localStorage.setItem('zn',JSON.stringify(S))}catch(e){}dirty++;sync()};
@@ -190,7 +190,7 @@ async function flush(){
       }
     }while(again);
     try{localStorage.setItem('zn_last',JSON.stringify(last))}catch(e){}
-    setSt('');
+    lastFl=Date.now();setSt('');
   }catch(e){ok=false;setSt('err');clearTimeout(rtr);rtr=setTimeout(flush,8000)}
   busy=false;return ok;
 }
@@ -206,11 +206,22 @@ async function pull(){
     if(d0!==dirty||busy)return sync();
     const N={},L=emptyL();
     ks.forEach((k,i)=>{N[k]=rs[i].map(OBJ[k]);N[k].forEach(x=>L[k][x.id]=JSON.stringify(ROW[k](x)))});
+    const same=ks.every(k=>JSON.stringify(N[k])===JSON.stringify(S[k]));
     S=Object.assign(S,N);last=L;
     try{localStorage.setItem('zn',JSON.stringify(S));localStorage.setItem('zn_last',JSON.stringify(last))}catch(e){}
     if(fid&&!S.folders.some(f=>f.id===fid))fid=null;
-    setSt('');render();
+    setSt('');if(!same&&!/INPUT|TEXTAREA/.test((document.activeElement||{}).tagName||''))render();
   }catch(e){setSt('err')}
+}
+function rtSub(){
+  try{
+    if(rtCh)SB.removeChannel(rtCh);
+    rtCh=SB.channel('sec-data-'+usr.id);
+    Object.values(TB).forEach(t=>rtCh.on('postgres_changes',{event:'*',schema:'public',table:t},()=>{
+      clearTimeout(rtT);rtT=setTimeout(()=>{if(!busy&&Date.now()-lastFl>1500)pull()},700);
+    }));
+    rtCh.subscribe();
+  }catch(e){}
 }
 // Migrasi: daftar belanja lama jadi folder "Belanja"
 if(S.shop){if(S.shop.length&&!S.folders.length){const f={id:Date.now().toString(36)+'bl',name:'Belanja',color:COL[0]};S.folders.push(f);S.shop.forEach((i,k)=>S.todos.push({id:i.id,fid:f.id,text:i.name+(i.qty>1?' ×'+i.qty:''),done:!!i.done,ts:Date.now()+k}))}delete S.shop;save()}
@@ -649,7 +660,7 @@ async function start(u){
   try{localStorage.setItem('zn_uid',u.id)}catch(e){}
   showAuth(false);render(true);
   if(await flush())await pull();
-  mgPull();mgSub();
+  mgPull();mgSub();rtSub();
 }
 async function boot(){
   render(true);
@@ -675,7 +686,7 @@ $('.av').addEventListener('click',async()=>{
   if(!confirm('Keluar?'))return;
   try{await SB.auth.signOut()}catch(e){}
   usr=null;S=emptyS();last=emptyL();fid=null;MG=null;mgSig='';
-  try{mgChan&&SB.removeChannel(mgChan)}catch(e){}mgChan=null;
+  try{mgChan&&SB.removeChannel(mgChan);rtCh&&SB.removeChannel(rtCh)}catch(e){}mgChan=null;rtCh=null;
   try{['zn','zn_last','zn_uid'].forEach(k=>localStorage.removeItem(k))}catch(e){}
   render(true);showAuth(true);
 });
