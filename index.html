@@ -288,18 +288,28 @@ const AI_MODELS=['gemini-flash-lite-latest','gemini-flash-latest','gemini-2.5-fl
 const AI={msgs:[],busy:false,dots:null,model:''};
 let aiMem='';
 const aiKey=()=>{try{return localStorage.getItem(AI_KEY)||aiMem}catch(e){return aiMem}};
+const AI_COLN=['lime','ungu','kuning','pink','tosca'];
 const AI_TOOLS=[{functionDeclarations:[
- {name:'add_note',description:'Tambah note baru',parameters:{type:'OBJECT',properties:{title:{type:'STRING'},body:{type:'STRING'}},required:['title']}},
+ {name:'add_note',description:'Tambah note baru',parameters:{type:'OBJECT',properties:{title:{type:'STRING'},body:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['title']}},
+ {name:'edit_note',description:'Ubah note (judul, isi, atau warna) berdasarkan id. Isi baru menimpa seluruh isi lama.',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},title:{type:'STRING'},body:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['id']}},
+ {name:'delete_note',description:'Hapus satu note berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
  {name:'add_shop',description:'Tambah barang ke daftar belanja',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},qty:{type:'INTEGER'}},required:['name']}},
- {name:'add_wish',description:'Tambah barang ke wish list. prio: 1 tinggi, 2 sedang, 3 rendah',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'}},required:['name']}}
+ {name:'set_shop',description:'Ubah barang belanja: centang selesai atau atur jumlah',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},done:{type:'BOOLEAN'},qty:{type:'INTEGER'}},required:['id']}},
+ {name:'delete_shop',description:'Hapus satu barang belanja berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
+ {name:'clear_shop_done',description:'Hapus semua barang belanja yang sudah selesai'},
+ {name:'add_wish',description:'Tambah barang ke wish list. prio: 1 tinggi, 2 sedang, 3 rendah',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'}},required:['name']}},
+ {name:'set_wish',description:'Ubah wish: nama, harga, prioritas (1 tinggi, 2 sedang, 3 rendah), atau tandai sudah didapat',parameters:{type:'OBJECT',properties:{id:{type:'STRING'},name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'},got:{type:'BOOLEAN'}},required:['id']}},
+ {name:'delete_wish',description:'Hapus satu wish berdasarkan id',parameters:{type:'OBJECT',properties:{id:{type:'STRING'}},required:['id']}},
+ {name:'set_theme',description:'Ganti tema tampilan app',parameters:{type:'OBJECT',properties:{mode:{type:'STRING',enum:['terang','gelap']}},required:['mode']}},
+ {name:'open_tab',description:'Buka halaman app',parameters:{type:'OBJECT',properties:{tab:{type:'STRING',enum:['home','note','wish','shop']}},required:['tab']}}
 ]}];
 function aiSystem(){
   const data=JSON.stringify({
-    note:sortedNotes().slice(0,30).map(n=>({judul:n.title,isi:(n.body||'').slice(0,300),tgl:fd(n.ts)})),
-    wish:S.wish.map(i=>({nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got})),
-    belanja:S.shop.map(i=>({nama:i.name,jumlah:i.qty,selesai:!!i.done}))
+    note:sortedNotes().slice(0,30).map(n=>{const b=n.body||'',o={id:n.id,judul:n.title,isi:b.slice(0,1500),warna:AI_COLN[COL.indexOf(n.color)]||'',tgl:fd(n.ts)};if(b.length>1500)o.terpotong=true;return o}),
+    wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got})),
+    belanja:S.shop.map(i=>({id:i.id,nama:i.name,jumlah:i.qty,selesai:!!i.done}))
   });
-  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kalau diminta menambah note, wish, atau belanja, pakai tool. Jangan mengarang data yang tidak ada.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
+  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kamu bisa menambah, mengubah (isi, warna note, centang belanja, harga/prioritas wish), dan menghapus note, wish, dan belanja, mengganti tema, dan membuka halaman lewat tool. Pakai id dari data. Jangan mengarang data atau id. Warna note: lime, ungu, kuning, pink, tosca. Sebelum menghapus, pastikan item yang dimaksud jelas; kalau ambigu atau jumlahnya banyak, tanya dulu. Jangan ubah isi note yang bertanda terpotong.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
 }
 function aiAdd(c,t){
   const el=document.createElement('div');el.className='m '+c;
@@ -308,18 +318,55 @@ function aiAdd(c,t){
   box.scrollTop=box.scrollHeight;return el;
 }
 function aiTool(name,a){
+  const id=String(a.id||''),str=v=>String(v==null?'':v).trim(),int=(v,d)=>{const x=Math.round(Number(v));return isNaN(x)?d:x};
+  const nt=()=>S.notes.find(x=>x.id===id),ws=()=>S.wish.find(x=>x.id===id),sp=()=>S.shop.find(x=>x.id===id);
+  const NF='id tidak ditemukan';
   if(name==='add_note'){
-    const t=String(a.title||'').trim(),b=String(a.body||'').trim();if(!t&&!b)return 'kosong';
-    fresh=uid();S.notes.push({id:fresh,title:t,body:b,color:COL[S.notes.length%COL.length],ts:Date.now()});aiAdd('t','✓ Note: '+(t||'Tanpa judul'));
+    const t=str(a.title),b=str(a.body);if(!t&&!b)return 'kosong';
+    const k=AI_COLN.indexOf(str(a.color).toLowerCase());
+    fresh=uid();S.notes.push({id:fresh,title:t,body:b,color:COL[k>=0?k:S.notes.length%COL.length],ts:Date.now()});aiAdd('t','✓ Note: '+(t||'Tanpa judul'));
+  }else if(name==='edit_note'){
+    const n=nt();if(!n)return NF;
+    if(a.color!==undefined){const k=AI_COLN.indexOf(str(a.color).toLowerCase());if(k<0)return 'warna tidak dikenal: '+AI_COLN.join(', ');n.color=COL[k]}
+    if(a.title!==undefined||a.body!==undefined){if(a.title!==undefined)n.title=str(a.title);if(a.body!==undefined)n.body=str(a.body);n.ts=Date.now()}
+    aiAdd('t','✓ Note diubah: '+(n.title||'Tanpa judul'));
+  }else if(name==='delete_note'){
+    const n=nt();if(!n)return NF;
+    S.notes=S.notes.filter(x=>x.id!==id);aiAdd('t','✓ Note dihapus: '+(n.title||'Tanpa judul'));
   }else if(name==='add_shop'){
-    const n=String(a.name||'').trim();if(!n)return 'kosong';
-    const qty=Math.max(1,Math.round(Number(a.qty))||1),ex=S.shop.find(i=>i.name.toLowerCase()===n.toLowerCase()&&!i.done);
+    const n=str(a.name);if(!n)return 'kosong';
+    const qty=Math.max(1,int(a.qty,1)),ex=S.shop.find(i=>i.name.toLowerCase()===n.toLowerCase()&&!i.done);
     if(ex)ex.qty+=qty;else{fresh=uid();S.shop.push({id:fresh,name:n,qty,done:false})}
     aiAdd('t','✓ Belanja: '+n);
+  }else if(name==='set_shop'){
+    const i=sp();if(!i)return NF;
+    if(a.done!==undefined)i.done=!!a.done;
+    if(a.qty!==undefined)i.qty=Math.max(1,int(a.qty,1));
+    aiAdd('t','✓ Belanja diubah: '+i.name);
+  }else if(name==='delete_shop'){
+    const i=sp();if(!i)return NF;
+    S.shop=S.shop.filter(x=>x.id!==id);aiAdd('t','✓ Belanja dihapus: '+i.name);
+  }else if(name==='clear_shop_done'){
+    const c=S.shop.filter(x=>x.done).length;S.shop=S.shop.filter(x=>!x.done);aiAdd('t','✓ '+c+' item selesai dihapus');
   }else if(name==='add_wish'){
-    const n=String(a.name||'').trim();if(!n)return 'kosong';
-    const r=Number(a.prio);fresh=uid();S.wish.push({id:fresh,name:n,price:Math.max(0,Number(a.price))||0,prio:[1,2,3].includes(r)?r:2,got:false});
+    const n=str(a.name);if(!n)return 'kosong';
+    const r=int(a.prio,2);fresh=uid();S.wish.push({id:fresh,name:n,price:Math.max(0,Number(a.price))||0,prio:[1,2,3].includes(r)?r:2,got:false});
     aiAdd('t','✓ Wish: '+n);
+  }else if(name==='set_wish'){
+    const w=ws();if(!w)return NF;
+    if(a.name!==undefined&&str(a.name))w.name=str(a.name);
+    if(a.price!==undefined)w.price=Math.max(0,Number(a.price))||0;
+    if(a.prio!==undefined&&[1,2,3].includes(int(a.prio,0)))w.prio=int(a.prio,2);
+    if(a.got!==undefined)w.got=!!a.got;
+    aiAdd('t','✓ Wish diubah: '+w.name);
+  }else if(name==='delete_wish'){
+    const w=ws();if(!w)return NF;
+    S.wish=S.wish.filter(x=>x.id!==id);aiAdd('t','✓ Wish dihapus: '+w.name);
+  }else if(name==='set_theme'){
+    const g=str(a.mode)==='gelap';document.documentElement.dataset.theme=g?'dark':'light';aiAdd('t','✓ Tema '+(g?'gelap':'terang'));return 'ok';
+  }else if(name==='open_tab'){
+    const t=str(a.tab);if(!['home','note','wish','shop'].includes(t))return 'halaman tidak dikenal';
+    go(t);return 'ok';
   }else return 'tool tidak dikenal';
   save();render();return 'ok';
 }
