@@ -114,6 +114,10 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
 @keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
 .sg{display:flex;flex-wrap:wrap;gap:8px}
+#auth{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+#auth .card{width:100%;max-width:380px;margin:0}
+#auth input{margin-bottom:10px}
+.av{cursor:pointer}.av.sy{opacity:.55}.av.err{box-shadow:0 0 0 3px #ff5a5a}
 </style>
 </head>
 <body>
@@ -135,13 +139,79 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
   <div id="aiKey" class="row hid"><input id="aiKi" type="password" placeholder="API key" autocomplete="off"><button class="btn" type="button" id="aiSave">Simpan</button><button class="btn o hid" type="button" id="aiDel">Hapus</button></div>
   <div id="aiBox"><div id="aim"></div><div class="row" id="aiF" style="margin:0"><input id="aiI" placeholder="Tanya atau perintah" autocomplete="off"><button class="btn" type="button" id="aiGo">Kirim</button></div></div>
 </div></div>
+<div id="auth" class="hid"><div class="card"><h1>Masuk</h1><form id="authF"><input id="ae" type="email" placeholder="Email" autocomplete="email" required><input id="ap" type="password" placeholder="Sandi" autocomplete="current-password" required><div class="row" style="margin:0"><button class="btn" style="flex:1">Masuk</button><button class="btn o" type="button" id="aUp">Daftar</button></div><p class="sub" id="aMsg" style="margin:12px 0 0"></p></form></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 <script>
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI. Semua string tampilan harus singkat.
 const COL=['#DFF65A','#D9D0FF','#FFE8A3','#FFC9DD','#BFF0E8'];
 const PR=['','Tinggi','Sedang','Rendah'],PC=['','#FFC9DD','#FFE8A3','#BFF0E8'];
 let S={notes:[],wish:[],folders:[],todos:[]},tab='home',q='',fresh=null,fid=null;
 try{const r=localStorage.getItem('zn');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
-const save=()=>{try{localStorage.setItem('zn',JSON.stringify(S))}catch(e){}};
+// ===== Supabase sync =====
+const SB_URL='https://ypdtaoccfxzquyfsiloy.supabase.co',SB_KEY='sb_publishable_2crOjnp8Rf4zhCt2bdO_Ug_rH4enKGH';
+const SB=window.supabase?window.supabase.createClient(SB_URL,SB_KEY):null;
+const TB={notes:'secretary_notes',folders:'secretary_folders',todos:'secretary_todos',wish:'secretary_wishes'};
+const ROW={
+  notes:n=>({id:n.id,title:n.title||'',body:n.body||'',color:n.color,ts:n.ts||0}),
+  folders:f=>({id:f.id,name:f.name,color:f.color}),
+  todos:t=>({id:t.id,fid:t.fid,text:t.text,done:!!t.done,ts:t.ts||0,dt:t.dt||null}),
+  wish:w=>({id:w.id,name:w.name,price:Number(w.price)||0,prio:w.prio||2,got:!!w.got})
+};
+const OBJ={
+  notes:r=>({id:r.id,title:r.title,body:r.body,color:r.color,ts:Number(r.ts)}),
+  folders:r=>({id:r.id,name:r.name,color:r.color}),
+  todos:r=>{const t={id:r.id,fid:r.fid,text:r.text,done:!!r.done,ts:Number(r.ts)};if(r.dt)t.dt=Number(r.dt);return t},
+  wish:r=>({id:r.id,name:r.name,price:Number(r.price),prio:r.prio,got:!!r.got})
+};
+const emptyS=()=>({notes:[],wish:[],folders:[],todos:[]});
+const emptyL=()=>({notes:{},folders:{},todos:{},wish:{}});
+let usr=null,busy=false,again=false,tmr=0,rtr=0,dirty=0,last=emptyL();
+try{const l=localStorage.getItem('zn_last');if(l)last=Object.assign(last,JSON.parse(l))}catch(e){}
+const setSt=c=>{const a=document.querySelector('.av');if(a){a.classList.toggle('sy',c==='sy');a.classList.toggle('err',c==='err')}};
+const save=()=>{try{localStorage.setItem('zn',JSON.stringify(S))}catch(e){}dirty++;sync()};
+function sync(){clearTimeout(tmr);if(usr)tmr=setTimeout(flush,400)}
+async function flush(){
+  if(!usr||!SB)return false;
+  if(busy){again=true;return false}
+  busy=true;let ok=true;setSt('sy');
+  try{
+    do{again=false;
+      for(const k in TB){
+        const cur={};for(const x of S[k])cur[x.id]=JSON.stringify(ROW[k](x));
+        const up=Object.keys(cur).filter(id=>last[k][id]!==cur[id]),del=Object.keys(last[k]).filter(id=>!(id in cur));
+        for(let i=0;i<up.length;i+=200){
+          const part=up.slice(i,i+200),{error}=await SB.from(TB[k]).upsert(part.map(id=>JSON.parse(cur[id])),{onConflict:'id'});
+          if(error)throw error;part.forEach(id=>last[k][id]=cur[id]);
+        }
+        for(let i=0;i<del.length;i+=200){
+          const part=del.slice(i,i+200),{error}=await SB.from(TB[k]).delete().in('id',part);
+          if(error)throw error;part.forEach(id=>delete last[k][id]);
+        }
+      }
+    }while(again);
+    try{localStorage.setItem('zn_last',JSON.stringify(last))}catch(e){}
+    setSt('');
+  }catch(e){ok=false;setSt('err');clearTimeout(rtr);rtr=setTimeout(flush,8000)}
+  busy=false;return ok;
+}
+async function allRows(t){
+  let o=[],i=0;
+  for(;;){const {data,error}=await SB.from(t).select('*').order('id').range(i,i+999);if(error)throw error;o=o.concat(data);if(data.length<1000)return o;i+=1000}
+}
+async function pull(){
+  if(!usr||!SB||busy)return;
+  const d0=dirty;
+  try{
+    const ks=Object.keys(TB),rs=await Promise.all(ks.map(k=>allRows(TB[k])));
+    if(d0!==dirty||busy)return sync();
+    const N={},L=emptyL();
+    ks.forEach((k,i)=>{N[k]=rs[i].map(OBJ[k]);N[k].forEach(x=>L[k][x.id]=JSON.stringify(ROW[k](x)))});
+    S=Object.assign(S,N);last=L;
+    try{localStorage.setItem('zn',JSON.stringify(S));localStorage.setItem('zn_last',JSON.stringify(last))}catch(e){}
+    if(fid&&!S.folders.some(f=>f.id===fid))fid=null;
+    setSt('');render();
+  }catch(e){setSt('err')}
+}
 // Migrasi: daftar belanja lama jadi folder "Belanja"
 if(S.shop){if(S.shop.length&&!S.folders.length){const f={id:Date.now().toString(36)+'bl',name:'Belanja',color:COL[0]};S.folders.push(f);S.shop.forEach((i,k)=>S.todos.push({id:i.id,fid:f.id,text:i.name+(i.qty>1?' ×'+i.qty:''),done:!!i.done,ts:Date.now()+k}))}delete S.shop;save()}
 const $=s=>document.querySelector(s);
@@ -508,7 +578,48 @@ $('#aiDel').addEventListener('click',()=>{
   $('#aiKi').value='';$('#aiKey').classList.remove('hid');aiView();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ai').classList.contains('open'))aiClose()});
-render(true);
+// ===== Login =====
+const showAuth=on=>$('#auth').classList.toggle('hid',!on);
+const aMsg=t=>{$('#aMsg').textContent=t};
+async function start(u){
+  usr=u;
+  let id='';try{id=localStorage.getItem('zn_uid')||''}catch(e){}
+  if(id&&id!==u.id){S=emptyS();last=emptyL();fid=null;save()}
+  else if(!id)last=emptyL();
+  try{localStorage.setItem('zn_uid',u.id)}catch(e){}
+  showAuth(false);render(true);
+  if(await flush())await pull();
+}
+async function boot(){
+  render(true);
+  if(!SB){setSt('err');return}
+  try{const {data}=await SB.auth.getSession();if(data.session)await start(data.session.user);else showAuth(true)}
+  catch(e){setSt('err')}
+}
+async function authGo(up){
+  if(!SB)return aMsg('Gagal');
+  const email=$('#ae').value.trim(),password=$('#ap').value;if(!email||!password)return;
+  aMsg('…');
+  try{
+    const r=up?await SB.auth.signUp({email,password}):await SB.auth.signInWithPassword({email,password});
+    if(r.error)return aMsg(up?String(r.error.message).slice(0,80):'Email atau sandi salah');
+    if(r.data.session){aMsg('');$('#ap').value='';await start(r.data.session.user)}else aMsg('Cek email')
+  }catch(e){aMsg('Jaringan gagal')}
+}
+$('#authF').addEventListener('submit',e=>{e.preventDefault();authGo(false)});
+$('#aUp').addEventListener('click',()=>authGo(true));
+$('.av').addEventListener('click',async()=>{
+  if(!usr)return;
+  if(!(await flush())&&!confirm('Belum tersinkron. Tetap keluar?'))return;
+  if(!confirm('Keluar?'))return;
+  try{await SB.auth.signOut()}catch(e){}
+  usr=null;S=emptyS();last=emptyL();fid=null;
+  try{['zn','zn_last','zn_uid'].forEach(k=>localStorage.removeItem(k))}catch(e){}
+  render(true);showAuth(true);
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&usr)flush().then(ok=>ok&&pull())});
+addEventListener('online',()=>{usr?flush().then(ok=>ok&&pull()):boot()});
+boot();
 </script>
 </body>
 </html>
