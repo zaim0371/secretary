@@ -334,10 +334,10 @@ async function aiCall(obj){
       const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':aiKey()},body});
       if(r.ok){AI.model=m;return r.json()}
       const j=await r.json().catch(()=>null);last={s:r.status,m:(j&&j.error&&j.error.message)||''};
-      if(r.status===400&&th&&/think/i.test(last.m))continue;
+      if(r.status===400&&th&&!/API key/i.test(last.m))continue;
       break;
     }
-    if(last.s!==404)throw last;
+    if(last.s!==404&&!(last.s===400&&!/API key/i.test(last.m)))throw last;
   }
   throw last;
 }
