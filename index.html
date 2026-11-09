@@ -262,44 +262,12 @@ function dueTag(t){
   if(n===1)return{txt:'Besok',c:PRC[1]};
   return{txt:n+' hari lagi',c:n<=3?PRC[1]:PRC[0]};
 }
-function mgAgenda(off){
-  const d=new Date();d.setDate(d.getDate()+off);const key=ISO(d),sc=(MG&&Array.isArray(MG.sched)&&MG.sched[(d.getDay()+6)%7])||[];
-  return sc.filter(it=>it.date?it.date===key:(!it.until||it.until>=key)).sort((a,b)=>(a.time||'99').localeCompare(b.time||'99'));
-}
-function mgTasks(){
-  const k=t=>(t.deadline||'9999-12-31')+' '+(t.time||'99:99');
-  return (Array.isArray(MG.tasks)?MG.tasks:[]).filter(t=>!t.done).sort((a,b)=>k(a).localeCompare(k(b))||(b.prio||0)-(a.prio||0));
-}
-function mgMoney(){
-  const tx=Array.isArray(MG.tx)?MG.tx:[],sm=(a,t)=>a.filter(x=>x.type===t).reduce((s,x)=>s+(Number(x.amt)||0),0),ym=ISO(new Date()).slice(0,7),m=tx.filter(x=>String(x.date).slice(0,7)===ym);
-  return{bal:sm(tx,'in')-sm(tx,'out'),inc:sm(m,'in'),out:sm(m,'out'),last:[...tx].sort((a,b)=>String(b.date).localeCompare(String(a.date))||(Number(b.id)||0)-(Number(a.id)||0)).slice(0,3)};
-}
-function mgAi(){
-  if(!MG)return;const f=mgMoney(),j=i=>({teks:i.text,jam:i.time||''});
-  return{saldo:f.bal,masuk_bulan_ini:f.inc,keluar_bulan_ini:f.out,
-    transaksi_terakhir:f.last.map(x=>({tgl:x.date,jenis:x.type==='in'?'masuk':'keluar',jumlah:x.amt,kategori:x.cat||'',catatan:x.note||''})),
-    jadwal_hari_ini:mgAgenda(0).map(j),jadwal_besok:mgAgenda(1).map(j),
-    tugas_aktif:mgTasks().slice(0,30).map(t=>({judul:t.title,deadline:t.deadline||'',jam:t.time||'',prioritas:PRM[t.prio]||''}))};
-}
-function mgHome(){
-  if(!MG)return '';
-  const f=mgMoney(),tg=(c,x)=>`<span class="tag" style="background:${c};color:#14121f">${x}</span>`;
-  const fin=`<div><h2>Keuangan</h2><div class="card banner"><small>SALDO</small><div class="big">${rs(f.bal)}</div></div>
-  <div class="grid" style="margin-bottom:12px"><div class="chip" style="background:${PRC[0]}"><em>↓</em><b style="font-size:17px">${rp(f.inc)}</b><span>Masuk bulan ini</span></div><div class="chip" style="background:${PRC[2]}"><em>↑</em><b style="font-size:17px">${rp(f.out)}</b><span>Keluar bulan ini</span></div></div>
-  ${f.last.length?f.last.map(x=>`<div class="item"><div class="t"><b>${esc(x.note||x.cat||'Transaksi')}</b><small>${x.cat?`<span class="tag">${esc(x.cat)}</span>`:''}${fd(x.date+'T00:00')}</small></div><b>${x.type==='in'?'+':'-'}${rp(x.amt)}</b></div>`).join(''):'<div class="empty">Belum ada transaksi</div>'}</div>`;
-  const ag=[0,1].map(o=>({o,it:mgAgenda(o)})),any=ag.some(g=>g.it.length);
-  const jd=`<div><h2>Jadwal</h2>${any?ag.filter(g=>g.it.length).map(g=>`<p class="sub" style="margin:0 2px 8px">${g.o?'Besok':'Hari ini'} · ${HARI[(new Date().getDay()+6+g.o)%7]}</p>`+g.it.slice(0,4).map(i=>`<div class="item"><div class="t"><b>${esc(i.text)}</b><small>${i.taskId?(i.kind==='dl'?tg(PRC[2],'Deadline'):tg(PRC[1],'Kerjakan')):tg('#D9D0FF','Rutin')}${i.time?hh(i.time):''}</small></div></div>`).join('')+(g.it.length>4?`<p class="sub" style="margin:0 2px 12px">+${g.it.length-4} lagi</p>`:'')).join(''):'<div class="empty">Kosong</div>'}</div>`;
-  const act=mgTasks();
-  const tk=`<div><h2>Tugas <span class="tag">${act.length} aktif</span></h2>${act.length?act.slice(0,4).map(t=>{const g=dueTag(t);return `<div class="item"><span class="chk" style="background:${PRC[t.prio]||PRC[1]};pointer-events:none"></span><div class="t"><b>${esc(t.title)}</b><small>${tg(PRC[t.prio]||PRC[1],PRM[t.prio]||'Sedang')}${g?tg(g.c,g.txt):''}</small></div></div>`}).join('')+(act.length>4?`<p class="sub" style="margin:0 2px 12px">+${act.length-4} lagi</p>`:''):'<div class="empty">Kosong</div>'}</div>`;
-  return fin+jd+tk;
-}
 // Beranda: teks singkat saja
 function home(){
   const h=new Date().getHours(),g=h<11?'Selamat pagi':h<15?'Selamat siang':h<19?'Selamat sore':'Selamat malam';
   const open=S.todos.filter(t=>!t.done).sort((a,b)=>a.ts-b.ts).slice(0,4),fn=id=>(S.folders.find(f=>f.id===id)||{}).name||'';
   return `<div><h1>${g}, Zaim!</h1><p class="sub">${new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'})}</p></div>
   <form class="row" data-f="quick"><input name="t" placeholder="Catat cepat" autocomplete="off"><button class="btn">Simpan</button></form>
-  ${mgHome()}
   <div><h2>Terbaru <button class="btn sm o" data-t="note">Semua</button></h2>${S.notes.length?`<div class="grid">${sortedNotes().slice(0,4).map(noteCard).join('')}</div>`:'<div class="empty">Belum ada note</div>'}</div>
   <div><h2>To Do <button class="btn sm o" data-t="todo">Buka</button></h2>${open.length?open.map(t=>`<div class="item"><button class="chk" data-a="tdone" data-id="${t.id}"></button><div class="t"><b>${esc(t.text)}</b><small><span class="tag">${esc(fn(t.fid))}</span></small></div></div>`).join(''):'<div class="empty">Kosong</div>'}</div>`;
 }
@@ -463,10 +431,9 @@ function aiSystem(){
     note:sortedNotes().slice(0,30).map(n=>{const b=n.body||'',o={id:n.id,judul:n.title,isi:b.slice(0,1500),warna:AI_COLN[COL.indexOf(n.color)]||'',tgl:fd(n.ts)};if(b.length>1500)o.terpotong=true;return o}),
     folder:S.folders.map(f=>({id:f.id,nama:f.name,warna:AI_COLN[COL.indexOf(f.color)]||''})),
     todo:S.todos.map(t=>({id:t.id,folder_id:t.fid,teks:t.text,selesai:!!t.done})),
-    wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got})),
-    manager:mgAi()
+    wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got}))
   });
-  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kamu bisa menambah, mengubah, dan menghapus note (termasuk warna), folder to do, isi to do (centang selesai, pindah folder), dan wish, juga mengganti tema dan membuka halaman, semua lewat tool. Belanja sekarang berupa folder to do. Pakai id dari data. Jangan mengarang data atau id. Untuk menambah to do, pakai folder_id yang ada, atau folder_name (folder baru dibuat otomatis). Warna note dan folder: lime, ungu, kuning, pink, tosca. Sebelum menghapus, pastikan item yang dimaksud jelas; kalau ambigu atau jumlahnya banyak, tanya dulu. Menghapus folder ikut menghapus semua to do di dalamnya. Jangan ubah isi note yang bertanda terpotong. Data "manager" (keuangan, jadwal, tugas) hanya untuk dibaca; kamu tidak bisa mengubahnya.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
+  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kamu bisa menambah, mengubah, dan menghapus note (termasuk warna), folder to do, isi to do (centang selesai, pindah folder), dan wish, juga mengganti tema dan membuka halaman, semua lewat tool. Belanja sekarang berupa folder to do. Pakai id dari data. Jangan mengarang data atau id. Untuk menambah to do, pakai folder_id yang ada, atau folder_name (folder baru dibuat otomatis). Warna note dan folder: lime, ungu, kuning, pink, tosca. Sebelum menghapus, pastikan item yang dimaksud jelas; kalau ambigu atau jumlahnya banyak, tanya dulu. Menghapus folder ikut menghapus semua to do di dalamnya. Jangan ubah isi note yang bertanda terpotong.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
 }
 function aiAdd(c,t){
   const el=document.createElement('div');el.className='m '+c;
@@ -636,19 +603,6 @@ $('#aiDel').addEventListener('click',()=>{
   $('#aiKi').value='';$('#aiKey').classList.remove('hid');aiView();
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ai').classList.contains('open'))aiClose()});
-// ===== manager_state (baca saja) =====
-let MG=null,mgSig='',mgChan=null;
-function mgApply(d){
-  const s=JSON.stringify(d||null);if(s===mgSig)return;mgSig=s;MG=d&&typeof d==='object'?d:null;
-  if(tab==='home'&&!/INPUT|TEXTAREA/.test((document.activeElement||{}).tagName||''))render();
-}
-async function mgPull(){
-  if(!usr||!SB)return;
-  try{const {data,error}=await SB.from('manager_state').select('data').eq('user_id',usr.id).maybeSingle();if(error)throw error;mgApply(data&&data.data)}catch(e){}
-}
-function mgSub(){
-  try{if(mgChan)SB.removeChannel(mgChan);mgChan=SB.channel('sec-mg-'+usr.id).on('postgres_changes',{event:'*',schema:'public',table:'manager_state',filter:'user_id=eq.'+usr.id},p=>{if(p.new&&p.new.data)mgApply(p.new.data)}).subscribe()}catch(e){}
-}
 // ===== Login =====
 const showAuth=on=>$('#auth').classList.toggle('hid',!on);
 const aMsg=t=>{$('#aMsg').textContent=t};
@@ -660,7 +614,7 @@ async function start(u){
   try{localStorage.setItem('zn_uid',u.id)}catch(e){}
   showAuth(false);render(true);
   if(await flush())await pull();
-  mgPull();mgSub();rtSub();
+  rtSub();
 }
 async function boot(){
   render(true);
@@ -685,14 +639,13 @@ $('.av').addEventListener('click',async()=>{
   if(!(await flush())&&!confirm('Belum tersinkron. Tetap keluar?'))return;
   if(!confirm('Keluar?'))return;
   try{await SB.auth.signOut()}catch(e){}
-  usr=null;S=emptyS();last=emptyL();fid=null;MG=null;mgSig='';
-  try{mgChan&&SB.removeChannel(mgChan);rtCh&&SB.removeChannel(rtCh)}catch(e){}mgChan=null;rtCh=null;
+  usr=null;S=emptyS();last=emptyL();fid=null;
+  try{rtCh&&SB.removeChannel(rtCh)}catch(e){}rtCh=null;
   try{['zn','zn_last','zn_uid'].forEach(k=>localStorage.removeItem(k))}catch(e){}
   render(true);showAuth(true);
 });
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&usr){flush().then(ok=>ok&&pull());mgPull()}});
-addEventListener('online',()=>{usr?(flush().then(ok=>ok&&pull()),mgPull()):boot()});
-setInterval(()=>{if(!usr||document.hidden)return;mgPull().then(()=>{if(MG&&tab==='home'&&!/INPUT|TEXTAREA/.test((document.activeElement||{}).tagName||''))render()})},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&usr){flush().then(ok=>ok&&pull())}});
+addEventListener('online',()=>{usr?flush().then(ok=>ok&&pull()):boot()});
 boot();
 </script>
 </body>
