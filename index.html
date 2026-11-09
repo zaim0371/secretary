@@ -284,7 +284,7 @@ document.addEventListener('submit',e=>{
 document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
 // ===== Asisten AI =====
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI asisten. Label singkat saja.
-const AI_MODELS=['gemini-flash-latest','gemini-3.6-flash','gemini-2.5-flash'],AI_KEY='zn_gkey';
+const AI_MODELS=['gemini-flash-lite-latest','gemini-flash-latest','gemini-2.5-flash'],AI_KEY='zn_gkey';
 const AI={msgs:[],busy:false,dots:null,model:''};
 let aiMem='';
 const aiKey=()=>{try{return localStorage.getItem(AI_KEY)||aiMem}catch(e){return aiMem}};
@@ -326,13 +326,18 @@ function aiTool(name,a){
 function aiTrim(){
   while(AI.msgs.length>24){AI.msgs.shift();while(AI.msgs.length&&!(AI.msgs[0].role==='user'&&AI.msgs[0].parts[0]&&AI.msgs[0].parts[0].text!==undefined))AI.msgs.shift()}
 }
-async function aiCall(body){
+async function aiCall(obj){
   let last={s:404,m:'Model tidak ditemukan'};
   for(const m of (AI.model?[AI.model]:AI_MODELS)){
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':aiKey()},body});
-    if(r.ok){AI.model=m;return r.json()}
-    const j=await r.json().catch(()=>null);last={s:r.status,m:(j&&j.error&&j.error.message)||''};
-    if(r.status!==404)throw last;
+    for(const th of [true,false]){
+      const body=JSON.stringify(th?{...obj,generationConfig:{thinkingConfig:{thinkingBudget:0}}}:obj);
+      const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':aiKey()},body});
+      if(r.ok){AI.model=m;return r.json()}
+      const j=await r.json().catch(()=>null);last={s:r.status,m:(j&&j.error&&j.error.message)||''};
+      if(r.status===400&&th&&/think/i.test(last.m))continue;
+      break;
+    }
+    if(last.s!==404)throw last;
   }
   throw last;
 }
@@ -344,7 +349,7 @@ async function aiSend(text){
   AI.dots=aiAdd('a','…');
   try{
     for(let i=0;i<5;i++){
-      const d=await aiCall(JSON.stringify({systemInstruction:{parts:[{text:aiSystem()}]},tools:AI_TOOLS,contents:AI.msgs}));
+      const d=await aiCall({systemInstruction:{parts:[{text:aiSystem()}]},tools:AI_TOOLS,contents:AI.msgs});
       const c=d.candidates&&d.candidates[0],ps=(c&&c.content&&c.content.parts)||[];
       if(!ps.length)throw {s:200,m:'Balasan kosong'};
       AI.msgs.push({role:'model',parts:ps});
