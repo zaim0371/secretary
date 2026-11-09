@@ -91,6 +91,29 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 @keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97)}}
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* ===== Asisten AI ===== CATATAN: teks UI asisten harus singkat (label saja) */
+.hid{display:none!important}
+#aiFab{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--lime);color:#14121f;border:1.5px solid var(--line);box-shadow:3px 3px 0 var(--line);display:grid;place-items:center;cursor:pointer;z-index:12;padding:0;transition:transform .3s var(--spring),box-shadow .2s}
+#aiFab:hover{transform:translateY(-3px) rotate(-6deg)}#aiFab:active{transform:scale(.9);box-shadow:0 0 0 var(--line)}
+#aiFab:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+#aiFab svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#ai{position:fixed;inset:0;background:rgba(20,18,31,.45);display:flex;align-items:flex-end;justify-content:center;z-index:30;opacity:0;pointer-events:none;transition:opacity .3s}
+#ai.open{opacity:1;pointer-events:auto}
+#ai .sheet{display:flex;flex-direction:column;height:86%;max-height:86%;overflow:hidden;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px))}
+#ai.open .sheet{transform:none}
+.aih{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.aih b{flex:1;font-size:22px;font-weight:800;letter-spacing:-.6px}
+#aiBox{flex:1;min-height:0;display:flex;flex-direction:column}
+#aim{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding:2px 2px 12px}
+.m{max-width:86%;padding:10px 14px;border:1.5px solid var(--line);border-radius:20px;white-space:pre-wrap;word-break:break-word;line-height:1.4;font-size:15px;animation:pop .4s var(--spring)}
+.m.u{align-self:flex-end;background:var(--lime);color:var(--on);border-bottom-right-radius:6px}
+.m.a{align-self:flex-start;background:var(--card);border-bottom-left-radius:6px}
+.m.t{align-self:flex-start;background:var(--lav);color:var(--on);font-size:12px;font-weight:700;padding:4px 10px;border-radius:10px}
+.dots i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ink);margin:0 2px;animation:blink 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.sg{display:flex;flex-wrap:wrap;gap:8px}
 </style>
 </head>
 <body>
@@ -106,6 +129,12 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
   <button data-t="shop"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></svg>Belanja</button>
 </div></nav>
 <div id="modal"></div>
+<button id="aiFab" aria-label="Asisten"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button>
+<div id="ai"><div class="sheet">
+  <div class="aih"><b>Asisten</b><button class="btn ic o" id="aiGear" aria-label="Key">⚙</button><button class="btn ic o" id="aiX" aria-label="Tutup">✕</button></div>
+  <div id="aiKey" class="row hid"><input id="aiKi" type="password" placeholder="API key" autocomplete="off"><button class="btn" type="button" id="aiSave">Simpan</button><button class="btn o hid" type="button" id="aiDel">Hapus</button></div>
+  <div id="aiBox"><div id="aim"></div><div class="row" id="aiF" style="margin:0"><input id="aiI" placeholder="Tanya atau perintah" autocomplete="off"><button class="btn" type="button" id="aiGo">Kirim</button></div></div>
+</div></div>
 <script>
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI. Semua string tampilan harus singkat.
 const COL=['#DFF65A','#D9D0FF','#FFE8A3','#FFC9DD','#BFF0E8'];
@@ -253,6 +282,126 @@ document.addEventListener('submit',e=>{
   save();render();
 });
 document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
+// ===== Asisten AI =====
+// CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI asisten. Label singkat saja.
+const AI_MODELS=['gemini-flash-latest','gemini-3.6-flash','gemini-2.5-flash'],AI_KEY='zn_gkey';
+const AI={msgs:[],busy:false,dots:null,model:''};
+let aiMem='';
+const aiKey=()=>{try{return localStorage.getItem(AI_KEY)||aiMem}catch(e){return aiMem}};
+const AI_TOOLS=[{functionDeclarations:[
+ {name:'add_note',description:'Tambah note baru',parameters:{type:'OBJECT',properties:{title:{type:'STRING'},body:{type:'STRING'}},required:['title']}},
+ {name:'add_shop',description:'Tambah barang ke daftar belanja',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},qty:{type:'INTEGER'}},required:['name']}},
+ {name:'add_wish',description:'Tambah barang ke wish list. prio: 1 tinggi, 2 sedang, 3 rendah',parameters:{type:'OBJECT',properties:{name:{type:'STRING'},price:{type:'NUMBER'},prio:{type:'INTEGER'}},required:['name']}}
+]}];
+function aiSystem(){
+  const data=JSON.stringify({
+    note:sortedNotes().slice(0,30).map(n=>({judul:n.title,isi:(n.body||'').slice(0,300),tgl:fd(n.ts)})),
+    wish:S.wish.map(i=>({nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got})),
+    belanja:S.shop.map(i=>({nama:i.name,jumlah:i.qty,selesai:!!i.done}))
+  });
+  return 'Kamu asisten di app catatan "Zaim’s Notes". Jawab dalam bahasa Indonesia, santai dan singkat. Kalau diminta menambah note, wish, atau belanja, pakai tool. Jangan mengarang data yang tidak ada.\nHari ini: '+new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nData:\n'+data;
+}
+function aiAdd(c,t){
+  const el=document.createElement('div');el.className='m '+c;
+  if(t==='…')el.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';else el.textContent=t;
+  const box=$('#aim');box.insertBefore(el,AI.dots&&AI.dots.parentNode===box?AI.dots:null);
+  box.scrollTop=box.scrollHeight;return el;
+}
+function aiTool(name,a){
+  if(name==='add_note'){
+    const t=String(a.title||'').trim(),b=String(a.body||'').trim();if(!t&&!b)return 'kosong';
+    fresh=uid();S.notes.push({id:fresh,title:t,body:b,color:COL[S.notes.length%COL.length],ts:Date.now()});aiAdd('t','✓ Note: '+(t||'Tanpa judul'));
+  }else if(name==='add_shop'){
+    const n=String(a.name||'').trim();if(!n)return 'kosong';
+    const qty=Math.max(1,Math.round(Number(a.qty))||1),ex=S.shop.find(i=>i.name.toLowerCase()===n.toLowerCase()&&!i.done);
+    if(ex)ex.qty+=qty;else{fresh=uid();S.shop.push({id:fresh,name:n,qty,done:false})}
+    aiAdd('t','✓ Belanja: '+n);
+  }else if(name==='add_wish'){
+    const n=String(a.name||'').trim();if(!n)return 'kosong';
+    const r=Number(a.prio);fresh=uid();S.wish.push({id:fresh,name:n,price:Math.max(0,Number(a.price))||0,prio:[1,2,3].includes(r)?r:2,got:false});
+    aiAdd('t','✓ Wish: '+n);
+  }else return 'tool tidak dikenal';
+  save();render();return 'ok';
+}
+function aiTrim(){
+  while(AI.msgs.length>24){AI.msgs.shift();while(AI.msgs.length&&!(AI.msgs[0].role==='user'&&AI.msgs[0].parts[0]&&AI.msgs[0].parts[0].text!==undefined))AI.msgs.shift()}
+}
+async function aiCall(body){
+  let last={s:404,m:'Model tidak ditemukan'};
+  for(const m of (AI.model?[AI.model]:AI_MODELS)){
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':aiKey()},body});
+    if(r.ok){AI.model=m;return r.json()}
+    const j=await r.json().catch(()=>null);last={s:r.status,m:(j&&j.error&&j.error.message)||''};
+    if(r.status!==404)throw last;
+  }
+  throw last;
+}
+async function aiSend(text){
+  text=text.trim();if(AI.busy||!text)return;
+  AI.busy=true;const sg=$('#aim .sg');if(sg)sg.remove();
+  const base=AI.msgs.length;let acted=false;
+  AI.msgs.push({role:'user',parts:[{text}]});aiTrim();aiAdd('u',text);
+  AI.dots=aiAdd('a','…');
+  try{
+    for(let i=0;i<5;i++){
+      const d=await aiCall(JSON.stringify({systemInstruction:{parts:[{text:aiSystem()}]},tools:AI_TOOLS,contents:AI.msgs}));
+      const c=d.candidates&&d.candidates[0],ps=(c&&c.content&&c.content.parts)||[];
+      if(!ps.length)throw {s:200,m:'Balasan kosong'};
+      AI.msgs.push({role:'model',parts:ps});
+      const tx=ps.filter(x=>x.text&&!x.thought).map(x=>x.text).join('\n').trim();
+      if(tx)aiAdd('a',tx);
+      const fc=ps.filter(x=>x.functionCall);
+      if(!fc.length)break;
+      acted=true;
+      AI.msgs.push({role:'user',parts:fc.map(x=>({functionResponse:{name:x.functionCall.name,response:{result:aiTool(x.functionCall.name,x.functionCall.args||{})}}}))});
+    }
+  }catch(e){
+    if(!acted)AI.msgs.length=base;
+    const m=String(e&&e.m||'');
+    aiAdd('a',/API key/i.test(m)||e&&(e.s===401||e.s===403)?'Key tidak valid':e&&e.s===429?'Terlalu sering, tunggu':(e instanceof TypeError||/fetch|network/i.test(String(e&&e.message)))?'Jaringan diblokir, buka di Chrome':e&&e.s?'Gagal ('+e.s+') '+m.slice(0,90):'Error: '+String(e&&e.name||'')+' '+String(e&&e.message||e).slice(0,90));
+  }
+  AI.dots.remove();AI.dots=null;AI.busy=false;
+}
+function aiView(){
+  const key=!!aiKey(),setting=!$('#aiKey').classList.contains('hid');
+  $('#aiBox').classList.toggle('hid',setting||!key);
+  $('#aiKey').classList.toggle('hid',!(setting||!key));
+  $('#aiDel').classList.toggle('hid',!key);
+}
+function aiSuggest(){
+  const box=$('#aim');if(box.children.length)return;
+  box.innerHTML='<div class="sg"><button class="btn sm o" data-s="Ringkas note-ku">Ringkas note</button><button class="btn sm o" data-s="Kasih ide wish list">Ide wish</button><button class="btn sm o" data-p="Tambah belanja: ">Tambah belanja</button></div>';
+}
+function aiOpen(){
+  $('#ai').classList.add('open');
+  $('#aiKey').classList.add('hid');aiView();aiSuggest();
+  setTimeout(()=>{const f=aiKey()?$('#aiI'):$('#aiKi');f.focus()},350);
+}
+function aiClose(){$('#ai').classList.remove('open');document.activeElement&&document.activeElement.blur()}
+$('#aiFab').addEventListener('click',aiOpen);
+$('#aiX').addEventListener('click',aiClose);
+$('#ai').addEventListener('click',e=>{
+  if(e.target===$('#ai'))return aiClose();
+  const b=e.target.closest('[data-s],[data-p]');if(!b)return;
+  if(b.dataset.s)return aiSend(b.dataset.s);
+  const i=$('#aiI');i.value=b.dataset.p;i.focus();
+});
+$('#aiGear').addEventListener('click',()=>{$('#aiKey').classList.toggle('hid');aiView();if(!$('#aiKey').classList.contains('hid'))$('#aiKi').focus()});
+function aiSave(){
+  const v=$('#aiKi').value.trim();if(!v)return;
+  aiMem=v;try{localStorage.setItem(AI_KEY,v)}catch(x){}
+  $('#aiKi').value='';$('#aiKey').classList.add('hid');aiView();aiSuggest();$('#aiI').focus();
+}
+function aiGo(){const i=$('#aiI'),v=i.value;i.value='';aiSend(v)}
+$('#aiSave').addEventListener('click',aiSave);
+$('#aiGo').addEventListener('click',aiGo);
+$('#aiKi').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();aiSave()}});
+$('#aiI').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();aiGo()}});
+$('#aiDel').addEventListener('click',()=>{
+  aiMem='';try{localStorage.removeItem(AI_KEY)}catch(x){}
+  $('#aiKi').value='';$('#aiKey').classList.remove('hid');aiView();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#ai').classList.contains('open'))aiClose()});
 render(true);
 </script>
 </body>
