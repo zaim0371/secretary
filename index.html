@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zaim’s Notes</title>
+<link rel="preconnect" href="https://generativelanguage.googleapis.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&display=swap" rel="stylesheet">
 <!-- CATATAN: JANGAN tambahkan teks penjelasan panjang atau deskripsi tak perlu ke tampilan web.
      Semua teks di UI harus singkat: judul, label, dan tombol saja. -->
@@ -410,10 +411,10 @@ document.addEventListener('submit',e=>{
 document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
 // ===== Asisten AI =====
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI asisten. Label singkat saja.
-const AI_MODELS=['gemini-flash-latest','gemini-2.5-flash','gemini-flash-lite-latest'],AI_KEY='zn_gkey';
+const AI_MODELS=['gemini-2.5-flash','gemini-flash-lite-latest','gemini-flash-latest'],AI_KEY='zn_gkey',AI_DEF='AQ.Ab8RN6JgUAC8wEYffvw1LXYovHuRcaP0Uz_PFbb0J0bqehLydA';
 const AI={msgs:[],busy:false,dots:null,model:''};
 let aiMem='';
-const aiKey=()=>{try{return localStorage.getItem(AI_KEY)||aiMem}catch(e){return aiMem}};
+const aiKey=()=>{try{return localStorage.getItem(AI_KEY)||aiMem||AI_DEF}catch(e){return aiMem||AI_DEF}};
 const AI_COLN=['lime','ungu','kuning','pink','tosca'];
 const AI_TOOLS=[{functionDeclarations:[
  {name:'add_note',description:'Tambah note baru (catatan bebas, memo, ide, transkrip dokumen atau gambar)',parameters:{type:'OBJECT',properties:{title:{type:'STRING'},body:{type:'STRING'},color:{type:'STRING',enum:AI_COLN}},required:['title']}},
@@ -461,7 +462,7 @@ GAMBAR (user mengirim foto atau screenshot)
 - Kalau tanpa teks dan isi gambar tidak jelas peruntukannya, simpan sebagai note dan sebut itu.`;
 function aiSystem(){
   const data=JSON.stringify({
-    note:sortedNotes().slice(0,30).map((n,i)=>{const b=n.body||'',lim=i<10?1500:300,o={id:n.id,judul:n.title,isi:b.slice(0,lim),warna:AI_COLN[COL.indexOf(n.color)]||'',tgl:fd(n.ts)};if(b.length>lim)o.terpotong=true;return o}),
+    note:sortedNotes().slice(0,20).map((n,i)=>{const b=n.body||'',lim=i<4?1200:160,o={id:n.id,judul:n.title,isi:b.slice(0,lim),warna:AI_COLN[COL.indexOf(n.color)]||'',tgl:fd(n.ts)};if(b.length>lim)o.terpotong=true;return o}),
     folder:S.folders.map(f=>({id:f.id,nama:f.name,warna:AI_COLN[COL.indexOf(f.color)]||''})),
     todo:S.todos.map(t=>({id:t.id,folder_id:t.fid,teks:t.text,selesai:!!t.done})),
     wish:S.wish.map(i=>({id:i.id,nama:i.name,harga:i.price,prioritas:PR[i.prio],didapat:!!i.got}))
@@ -564,25 +565,34 @@ function aiTool(name,a){
   save();render();return res;
 }
 function aiTrim(){
-  while(AI.msgs.length>24){AI.msgs.shift();while(AI.msgs.length&&!(AI.msgs[0].role==='user'&&AI.msgs[0].parts[0]&&AI.msgs[0].parts[0].text!==undefined))AI.msgs.shift()}
+  while(AI.msgs.length>14){AI.msgs.shift();while(AI.msgs.length&&!(AI.msgs[0].role==='user'&&AI.msgs[0].parts[0]&&AI.msgs[0].parts[0].text!==undefined))AI.msgs.shift()}
 }
 async function aiCall(obj,tb){
-  if(tb===undefined)tb=256;
+  if(tb===undefined)tb=0;   // tanpa "thinking": jauh lebih cepat
+  const models=AI.model?[AI.model].concat(AI_MODELS.filter(x=>x!==AI.model)):AI_MODELS;
+  const t0=Date.now();
   let last={s:404,m:'Model tidak ditemukan'};
-  for(const m of (AI.model?[AI.model]:AI_MODELS)){
+  for(const m of models){
     for(const th of [true,false]){
-      const body=JSON.stringify({...obj,generationConfig:th?{temperature:.2,thinkingConfig:{thinkingBudget:tb}}:{temperature:.2}});
-      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),45000);
+      if(Date.now()-t0>75000)throw {s:408,m:'Terlalu lama'};
+      const gc=Object.assign({temperature:.2,maxOutputTokens:4096},th?{thinkingConfig:{thinkingBudget:tb}}:{});
+      const body=JSON.stringify({...obj,generationConfig:gc});
+      const lim=body.indexOf('"inlineData"')>-1?35000:20000;   // lewat batas: coba model lain
+      const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),lim);
       let r;
       try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':aiKey()},body,signal:ac.signal})}
-      catch(e){clearTimeout(tm);if(e&&e.name==='AbortError')throw {s:408,m:'Terlalu lama'};throw e}
+      catch(e){
+        clearTimeout(tm);
+        if(e&&e.name==='AbortError'){last={s:408,m:'Terlalu lama'};if(m===AI.model)AI.model='';break}
+        throw e;
+      }
       clearTimeout(tm);
       if(r.ok){AI.model=m;return r.json()}
       const j=await r.json().catch(()=>null);last={s:r.status,m:(j&&j.error&&j.error.message)||''};
       if(r.status===400&&th&&!/API key/i.test(last.m))continue;
       break;
     }
-    if(![404,429,500,503].includes(last.s)&&!(last.s===400&&!/API key/i.test(last.m)))throw last;
+    if(![404,408,429,500,503].includes(last.s)&&!(last.s===400&&!/API key/i.test(last.m)))throw last;
   }
   throw last;
 }
