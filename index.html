@@ -93,6 +93,32 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+
+/* ===== Halaman note (gaya Apple Notes) ===== */
+#np{position:fixed;left:0;right:0;top:0;bottom:var(--kb,0px);z-index:25;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);visibility:hidden;transition:transform .45s var(--ease),visibility 0s .45s}
+#np.open{transform:none;visibility:visible;transition:transform .45s var(--ease),visibility 0s}
+#np::before{content:"";position:absolute;right:-70px;top:-70px;width:190px;height:190px;border-radius:50%;background:var(--c,var(--lime));transition:background .3s}
+#np>*{position:relative}
+.nph{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 10px 4px;min-height:56px}
+.npb{display:flex;align-items:center;gap:2px;font-weight:800;font-size:17px;padding:6px 10px 6px 4px;color:var(--ink)}
+.npb svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.npdone{background:var(--lime);color:#14121f;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .2s,transform .3s var(--spring)}
+#np.ed .npdone{opacity:1;pointer-events:auto;transform:none}
+.npsc{flex:1;min-height:0;overflow:auto;padding:4px 22px 40px;-webkit-overflow-scrolling:touch}
+.npd{text-align:center;color:var(--mut);font-size:12px;font-weight:700;margin:2px 0 16px}
+#npT,#npBd{display:block;border:0;background:transparent;border-radius:0;padding:0;box-shadow:none!important;transform:none!important;resize:none;overflow:hidden;min-height:0;width:100%}
+#npT{font-size:30px;font-weight:800;letter-spacing:-1.1px;line-height:1.1;margin-bottom:10px}
+#npBd{font-size:17px;line-height:1.5;min-height:50vh}
+.npt{position:relative;display:flex;justify-content:center;padding:8px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+#np.ed .npt{padding-bottom:10px}
+.npi{display:flex;gap:2px;background:#14121f;border-radius:999px;padding:5px}
+.npi button{min-width:48px;height:42px;border:0;background:none;border-radius:999px;color:#c9c6dc;font-weight:800;font-size:15px;cursor:pointer;display:grid;place-items:center;padding:0 10px;transition:background .2s,transform .3s var(--spring)}
+.npi button:active{transform:scale(.88);background:var(--lime);color:#14121f}
+.npi svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.npp{position:absolute;bottom:calc(100% - 2px);left:50%;transform:translateX(-50%);display:flex;gap:12px;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:10px 14px;animation:pop .35s var(--spring)}
+.npp .c{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);cursor:pointer;padding:0;transition:transform .3s var(--spring)}
+.npp .c.on{transform:scale(1.25);box-shadow:0 0 0 3px var(--card)}
+
 /* ===== Asisten AI ===== CATATAN: teks UI asisten harus singkat (label saja) */
 .hid{display:none!important}
 #aiFab{position:fixed;right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--lime);color:#14121f;border:1.5px solid var(--line);box-shadow:3px 3px 0 var(--line);display:grid;place-items:center;cursor:pointer;z-index:12;padding:0;transition:transform .3s var(--spring),box-shadow .2s}
@@ -140,6 +166,9 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
   <button data-t="todo"><svg viewBox="0 0 24 24"><path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17M11 6.5h9M11 12.5h9M11 18.5h9"/></svg>To Do</button>
 </div></nav>
 <div id="modal"></div>
+<div id="np"><div class="nph"><button class="btn x npb" id="npBack" aria-label="Kembali"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Note</button><button class="btn sm npdone" id="npDone">Selesai</button></div>
+<div class="npsc" id="npSc"><div class="npd" id="npD"></div><textarea id="npT" rows="1" placeholder="Judul" autocomplete="off"></textarea><textarea id="npBd" placeholder="Tulis..."></textarea></div>
+<div class="npt"><div class="npp hid" id="npP"></div><div class="npi"><button type="button" id="npCk" aria-label="Ceklis"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg></button><button type="button" id="npBu" aria-label="Poin"><svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1" fill="currentColor"/><circle cx="4.5" cy="12" r="1" fill="currentColor"/><circle cx="4.5" cy="18" r="1" fill="currentColor"/></svg></button><button type="button" id="npCo" aria-label="Warna"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button><button type="button" id="npDel" aria-label="Hapus"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg></button></div></div></div>
 <button id="aiFab" aria-label="Asisten"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button>
 <div id="ai"><div class="sheet">
   <div class="aih"><b>Asisten</b><button class="btn ic o" id="aiGear" aria-label="Key">⚙</button><button class="btn ic o" id="aiX" aria-label="Tutup">✕</button></div>
@@ -360,8 +389,8 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-a]');if(!el)return;
   const a=el.dataset.a,id=el.dataset.id,E=window._ed,by=k=>S[k].find(x=>x.id===id);
   if(a==='theme'){const r=document.documentElement,dark=getComputedStyle(r).colorScheme==='dark';r.dataset.theme=dark?'light':'dark';return}
-  if(a==='new')return editor();
-  if(a==='edit')return editor(id);
+  if(a==='new')return openNote();
+  if(a==='edit')return openNote(id);
   if(a==='close')return closeM();
   if(a==='color'){E.color=el.dataset.c;document.querySelectorAll('.sw .c').forEach(b=>b.classList.toggle('on',b.dataset.c===E.color));return}
   if(a==='save'){
@@ -409,6 +438,93 @@ document.addEventListener('submit',e=>{
   if(f==='todo'){const i=document.querySelector('[data-f="todo"] input');if(i)i.focus()}
 });
 document.addEventListener('input',e=>{if(e.target.id==='search'){q=e.target.value;$('#nl').innerHTML=noteList()}});
+
+// ===== Halaman note =====
+let NP=null,npTm=0;
+const npN=()=>NP&&S.notes.find(x=>x.id===NP.id);
+const npGrow=el=>{el.style.height='auto';el.style.height=el.scrollHeight+'px'};
+const npDate=t=>{const d=new Date(t);return d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' pukul '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.')};
+function npColor(){
+  $('#np').style.setProperty('--c',NP.color);
+  $('#npP').innerHTML=COL.map(c=>`<button type="button" class="c${c===NP.color?' on':''}" data-c="${c}" style="background:${c}"></button>`).join('');
+}
+function openNote(id){
+  const n=id&&S.notes.find(x=>x.id===id);
+  NP={id:n?n.id:uid(),color:n?n.color:COL[S.notes.length%COL.length],ts:n?n.ts:Date.now()};
+  $('#npT').value=n?n.title:'';$('#npBd').value=n?n.body:'';
+  $('#npD').textContent=npDate(NP.ts);$('#npP').classList.add('hid');
+  npColor();$('#npSc').scrollTop=0;
+  $('#np').classList.add('open');
+  requestAnimationFrame(()=>{npGrow($('#npT'));npGrow($('#npBd'))});
+  if(!n)setTimeout(()=>$('#npT').focus(),350);
+}
+function npSave(){
+  if(!NP)return;
+  const title=$('#npT').value.trim(),body=$('#npBd').value.replace(/\s+$/,''),n=npN();
+  if(!n){
+    if(!title&&!body)return;
+    S.notes.push({id:NP.id,title,body,color:NP.color,ts:Date.now()});
+  }else{
+    if(n.title===title&&n.body===body&&n.color===NP.color)return;
+    Object.assign(n,{title,body,color:NP.color,ts:Date.now()});
+  }
+  const m=npN();NP.ts=m.ts;$('#npD').textContent=npDate(m.ts);save();
+}
+const npLater=()=>{clearTimeout(npTm);npTm=setTimeout(npSave,350)};
+function closeNote(){
+  if(!NP)return;
+  clearTimeout(npTm);npSave();
+  const n=npN();if(n&&!n.title&&!n.body){S.notes=S.notes.filter(x=>x.id!==NP.id);save()}
+  document.activeElement&&document.activeElement.blur();
+  $('#np').classList.remove('ed','open');NP=null;render();
+}
+function npLine(){
+  const ta=$('#npBd'),v=ta.value,s=ta.selectionStart,a=v.lastIndexOf('\n',s-1)+1;
+  let b=v.indexOf('\n',s);if(b<0)b=v.length;
+  return{ta,v,s,a,b,line:v.slice(a,b)};
+}
+function npSet(ta,v,caret){ta.value=v;ta.setSelectionRange(caret,caret);npGrow(ta);npLater()}
+function npPrefix(p){
+  const o=npLine(),m=o.line.match(/^(☐|☑|•) /);
+  if(m){const keep=m[1]===p;
+    npSet(o.ta,o.v.slice(0,o.a)+(keep?'':p+' ')+o.line.slice(2)+o.v.slice(o.b),Math.max(o.a,o.s-(keep?2:0)));
+  }else npSet(o.ta,o.v.slice(0,o.a)+p+' '+o.line+o.v.slice(o.b),o.s+2);
+  o.ta.focus();
+}
+$('#npBack').addEventListener('click',closeNote);
+$('#npDone').addEventListener('click',()=>{document.activeElement&&document.activeElement.blur()});
+$('#np').addEventListener('mousedown',e=>{if(e.target.closest('.npt button'))e.preventDefault()});
+$('#np').addEventListener('focusin',e=>{if(/TEXTAREA/.test(e.target.tagName)){$('#np').classList.add('ed');$('#npP').classList.add('hid')}});
+$('#np').addEventListener('focusout',()=>setTimeout(()=>{const a=document.activeElement;if(!a||!/TEXTAREA/.test(a.tagName)||!$('#np').contains(a))$('#np').classList.remove('ed')},60));
+$('#npT').addEventListener('input',e=>{const t=e.target;if(/\n/.test(t.value))t.value=t.value.replace(/\n+/g,' ');npGrow(t);npLater()});
+$('#npT').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();const b=$('#npBd');b.focus();b.setSelectionRange(0,0)}});
+$('#npBd').addEventListener('input',e=>{npGrow(e.target);npLater()});
+$('#npBd').addEventListener('beforeinput',e=>{
+  if(e.inputType!=='insertLineBreak'&&e.inputType!=='insertParagraph')return;
+  const o=npLine(),m=o.line.match(/^(☐|☑|•) /);if(!m)return;
+  e.preventDefault();
+  if(o.line.length===2)npSet(o.ta,o.v.slice(0,o.a)+o.v.slice(o.b),o.a);
+  else{const p=m[1]==='☑'?'☐':m[1];o.ta.setRangeText('\n'+p+' ',o.s,o.ta.selectionEnd,'end');npGrow(o.ta);npLater()}
+  const sc=$('#npSc'),r=o.ta.getBoundingClientRect();if(r.bottom>sc.getBoundingClientRect().bottom-40)sc.scrollTop+=40;
+});
+$('#npBd').addEventListener('click',e=>{
+  const ta=e.target;if(ta.selectionStart!==ta.selectionEnd)return;
+  const o=npLine();
+  if(o.s-o.a<=1&&/^(☐|☑) /.test(o.line))npSet(ta,o.v.slice(0,o.a)+(o.line[0]==='☐'?'☑':'☐')+o.line.slice(1)+o.v.slice(o.b),o.a+2);
+});
+$('#npCk').addEventListener('click',()=>npPrefix('☐'));
+$('#npBu').addEventListener('click',()=>npPrefix('•'));
+$('#npCo').addEventListener('click',()=>$('#npP').classList.toggle('hid'));
+$('#npP').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b||!NP)return;NP.color=b.dataset.c;npColor();npLater()});
+$('#npDel').addEventListener('click',e=>{
+  const b=e.currentTarget;
+  if(!b.dataset.s){b.dataset.s='1';b.dataset.h=b.innerHTML;b.textContent='Yakin?';setTimeout(()=>{if(b.dataset.h){b.innerHTML=b.dataset.h;delete b.dataset.s;delete b.dataset.h}},2500);return}
+  b.innerHTML=b.dataset.h;delete b.dataset.s;delete b.dataset.h;
+  clearTimeout(npTm);S.notes=S.notes.filter(x=>x.id!==NP.id);save();
+  document.activeElement&&document.activeElement.blur();$('#np').classList.remove('ed','open');NP=null;render();
+});
+if(window.visualViewport){const kb=()=>{const v=visualViewport;$('#np').style.setProperty('--kb',Math.max(0,innerHeight-v.height-v.offsetTop)+'px')};visualViewport.addEventListener('resize',kb);visualViewport.addEventListener('scroll',kb)}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&NP&&!$('#ai').classList.contains('open'))closeNote()});
 // ===== Asisten AI =====
 // CATATAN: JANGAN tambahkan teks penjelasan panjang ke UI asisten. Label singkat saja.
 const AI_MODELS=['gemini-flash-lite-latest','gemini-2.5-flash','gemini-flash-latest'],AI_MODELS_IMG=['gemini-2.5-flash','gemini-flash-lite-latest','gemini-flash-latest'],AI_KEY='zn_gkey';
