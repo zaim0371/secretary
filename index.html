@@ -146,7 +146,9 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 .aiprev span{flex:1}
 .aiprev button{border:0;background:none;color:var(--ink);font-size:17px;width:34px;height:34px;cursor:pointer}
 .m.u img{display:block;max-width:100%;max-height:200px;border-radius:12px;margin-bottom:6px}
-#aiAtt svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#aiAtt svg,#aiMic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#aiMic.rec{background:#ff5a5a;color:#fff;animation:micp 1s ease-in-out infinite}
+@keyframes micp{0%,100%{box-shadow:0 0 0 0 rgba(255,90,90,.55)}50%{box-shadow:0 0 0 8px rgba(255,90,90,0)}}
 #auth{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
 #auth .card{width:100%;max-width:380px;margin:0}
 #auth input{margin-bottom:10px}
@@ -173,7 +175,7 @@ nav button.on{color:#14121f}nav button.on svg{transform:translateY(-1px) scale(1
 <div id="ai"><div class="sheet">
   <div class="aih"><b>Asisten</b><button class="btn ic o" id="aiGear" aria-label="Key">⚙</button><button class="btn ic o" id="aiX" aria-label="Tutup">✕</button></div>
   <div id="aiKey" class="row hid"><input id="aiKi" type="password" placeholder="API key" autocomplete="off"><button class="btn" type="button" id="aiSave">Simpan</button><button class="btn o hid" type="button" id="aiDel">Hapus</button></div>
-  <div id="aiBox"><div id="aim"></div><input type="file" id="aiFile" accept="image/*" class="hid"><div class="aiprev hid" id="aiPrev"></div><div class="row" id="aiF" style="margin:0"><button class="btn o ic" type="button" id="aiAtt" aria-label="Gambar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></svg></button><input id="aiI" placeholder="Tanya atau perintah" autocomplete="off"><button class="btn" type="button" id="aiGo">Kirim</button></div></div>
+  <div id="aiBox"><div id="aim"></div><input type="file" id="aiFile" accept="image/*" class="hid"><div class="aiprev hid" id="aiPrev"></div><div class="row" id="aiF" style="margin:0"><button class="btn o ic" type="button" id="aiAtt" aria-label="Gambar"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></svg></button><button class="btn o ic" type="button" id="aiMic" aria-label="Suara"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg></button><input id="aiI" placeholder="Tanya atau perintah" autocomplete="off"><button class="btn" type="button" id="aiGo">Kirim</button></div></div>
 </div></div>
 <div id="auth" class="hid"><div class="card"><h1>Masuk</h1><form id="authF"><input id="ae" type="email" placeholder="Email" autocomplete="email" required><input id="ap" type="password" placeholder="Sandi" autocomplete="current-password" required><div class="row" style="margin:0"><button class="btn" style="flex:1">Masuk</button><button class="btn o" type="button" id="aUp">Daftar</button></div><p class="sub" id="aMsg" style="margin:12px 0 0"></p></form></div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
@@ -808,7 +810,40 @@ function aiOpen(){
   $('#aiKey').classList.add('hid');aiView();aiSuggest();
   setTimeout(()=>{const f=aiKey()?$('#aiI'):$('#aiKi');f.focus()},350);
 }
-function aiClose(){$('#ai').classList.remove('open');document.activeElement&&document.activeElement.blur()}
+/* ----- suara ke teks ----- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let aiRec=null,aiRecOn=false,aiRecBase='';
+function aiMicStop(){aiRecOn=false;$('#aiMic').classList.remove('rec');try{aiRec&&aiRec.stop()}catch(e){}}
+function aiMicStart(){
+  const i=$('#aiI');
+  aiRecBase=i.value&&!/\s$/.test(i.value)?i.value+' ':i.value;
+  aiRec=new SR();aiRec.lang='id-ID';aiRec.interimResults=true;aiRec.continuous=false;aiRec.maxAlternatives=1;
+  let fin='';
+  aiRec.onresult=e=>{
+    let it='';
+    for(let k=e.resultIndex;k<e.results.length;k++){const r=e.results[k];if(r.isFinal)fin+=r[0].transcript;else it+=r[0].transcript}
+    i.value=aiRecBase+fin+it;
+  };
+  aiRec.onerror=e=>{
+    aiMicStop();
+    const er=e&&e.error;
+    if(er==='not-allowed'||er==='service-not-allowed')aiAdd('a','Izin mikrofon ditolak');
+    else if(er==='no-speech'||er==='aborted')return;
+    else if(er==='network')aiAdd('a','Jaringan suara gagal');
+    else aiAdd('a','Suara gagal: '+(er||''));
+  };
+  aiRec.onend=()=>{
+    const was=aiRecOn;aiMicStop();
+    i.value=(aiRecBase+fin).trim()?(aiRecBase+fin).replace(/\s+$/,''):i.value.trim();
+    i.focus();
+    if(was&&i.value.trim()&&aiAuto)aiGo();
+  };
+  try{aiRec.start();aiRecOn=true;$('#aiMic').classList.add('rec')}catch(e){aiMicStop()}
+}
+const aiAuto=false;
+if(!SR)$('#aiMic').classList.add('hid');
+else $('#aiMic').addEventListener('click',()=>{if(AI.busy)return;aiRecOn?aiMicStop():aiMicStart()});
+function aiClose(){aiMicStop();$('#ai').classList.remove('open');document.activeElement&&document.activeElement.blur()}
 $('#aiFab').addEventListener('click',aiOpen);
 $('#aiX').addEventListener('click',aiClose);
 $('#ai').addEventListener('click',e=>{
@@ -825,7 +860,7 @@ function aiSave(){
   $('#aiKi').value='';$('#aiKey').classList.add('hid');aiView();aiSuggest();$('#aiI').focus();
 }
 function aiGo(){
-  if(AI.busy)return;const i=$('#aiI'),v=i.value,im=aiImg;
+  if(AI.busy)return;aiMicStop();const i=$('#aiI'),v=i.value,im=aiImg;
   if(!v.trim()&&!im)return;
   i.value='';aiImg=null;aiPrevSet();aiSend(v,im);
 }
